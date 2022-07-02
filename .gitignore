@@ -56,3 +56,4 @@ crash.log
 *.box
 
 secrets/
+build.log

@@ -8,7 +8,7 @@ variable "region" {
 # build blocks. A build block runs provisioners and post-processors on a
 # source.
 source "amazon-ebs" "url_shortener" {
-  ami_name      = "learn-terraform-packer"
+  ami_name      = "url_shortener"
   instance_type = "t2.micro"
   region        = var.region
   force_deregister   = true
@@ -16,7 +16,7 @@ source "amazon-ebs" "url_shortener" {
 
   source_ami_filter {
     filters = {
-      name                = "ubuntu/images/*ubuntu-bionic-18.04-amd64-server-*"
+      name                = "ubuntu/images/*ubuntu-focal-20.04-amd64-server-*"
       root-device-type    = "ebs"
       virtualization-type = "hvm"
     }
@@ -46,6 +46,5 @@ build {
 
     provisioner "shell" {
       scripts = ["../scripts/setup-user.sh", "../scripts/install-software.sh"]
-      use_env_var_file = true
     }
 }
