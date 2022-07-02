@@ -99,3 +99,11 @@ output "public_ip" {
 output "public_dns" {
   value = aws_instance.web.public_dns
 }
+
+output "ebs_root_device_id" {
+  value = aws_instance.web.root_block_device.0.volume_id
+}
+
+output "ebs_root_device_name" {
+  value = aws_instance.web.root_block_device.0.device_name
+}

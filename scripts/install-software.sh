@@ -5,6 +5,8 @@ USER="han"
 POSTGRES_USER_PASSWORD=$(cat /tmp/postgres-user-password.txt)
 sudo rm /tmp/postgres-user-password.txt
 
+sudo apt-get update
+
 #### Install postgres, execute database schema script
 echo "Installing postgres"
 sudo apt-get -y install postgresql postgresql-contrib
@@ -21,8 +23,8 @@ sudo -u postgres createdb $USER
 DB_NAME="url_shortener"
 sudo -u postgres createdb $DB_NAME
 
-sudo cp /tmp/postgres-schema.sql .
-sudo -u $USER psql -d $DB_NAME -f postgres-schema.sql
+sudo -u $USER psql -d $DB_NAME -f /tmp/postgres-schema.sql
+sudo rm /tmp/postgres-schema.sql
 
 # Allow password authentication
 TAB="$(printf '\t')"
@@ -43,7 +45,7 @@ sudo systemctl enable redis-server
 echo "Installing nginx"
 sudo apt-get -y install nginx
 sudo ufw --force enable
-sudo ufw allow 'Nginx HTTP'
+sudo ufw allow 'Nginx Full'
 sudo ufw status
 sudo systemctl start nginx
 sudo systemctl enable nginx
@@ -52,7 +54,7 @@ localhost=$(ip addr show eth0 | grep inet | awk '{ print $2; }' | sed 's/\/.*$//
 curl $localhost
 
 # Setup nginx server block
-DOMAIN="api.shortener.yaphc.com"
+DOMAIN="api.urlshortener.yaphc.com"
 sudo mkdir -p /var/www/$DOMAIN/html
 sudo chown -R $USER:$USER /var/www/$DOMAIN/html
 sudo chmod -R 755 /var/www/$DOMAIN
@@ -94,9 +96,6 @@ server {
   listen 80;
   listen [::]:80;
 
-  root /var/www/$DOMAIN/html;
-  index index.html index.htm index.nginx-debian.html;
-
   server_name $DOMAIN;
 
   location / {
@@ -115,7 +114,6 @@ sudo systemctl restart nginx
 
 #### Install docker
 echo "Installing docker"
-sudo apt-get update
 
 # Remove docker
 sudo apt-get -y remove docker-desktop || true
@@ -138,12 +136,13 @@ sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-compose-plu
 sudo groupadd docker || true
 sudo usermod -a -G docker $USER
 sudo usermod -a -G docker ubuntu
+sudo systemctl start docker
 echo "groups before $(groups)" 
 newgrp docker
 echo "groups after $(groups)"
 
-docker version
-docker compose version
+sudo docker version
+sudo docker compose version
 
 # Start docker on boot
 sudo systemctl enable docker.service

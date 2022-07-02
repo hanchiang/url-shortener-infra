@@ -15,3 +15,6 @@ sudo cp /tmp/url_shortener_rsa.pub /home/$USER/.ssh/authorized_keys
 sudo chmod 600 /home/$USER/.ssh/authorized_keys
 sudo chown -R $USER /home/$USER/.ssh
 sudo usermod --shell /bin/bash $USER
+
+# open ssh port
+sudo ufw allow OpenSSH

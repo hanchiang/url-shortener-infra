@@ -12,9 +12,13 @@ variable "region"{
 }
 variable "ec2_ami" {
   description = "AMI of the EC2 to be provisioned"
-  default = "ami-0a2b83b3d21c32bd2"
+  default = "ami-0ccffa414772be4aa"
 }
 variable "ec2_instance_type" {
   description = "Instance type"
   default = "t2.micro"
+}
+variable "route53_zone_id" {
+  description = "Route53 zone id"
+  default = "Z036374065L40GHHCTH5"
 }
