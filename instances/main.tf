@@ -62,8 +62,8 @@ resource "aws_security_group" "sg_22_80" {
   }
 
   ingress {
-    from_port   = 3000
-    to_port     = 3000
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -77,21 +77,19 @@ resource "aws_security_group" "sg_22_80" {
 }
 
 resource "aws_instance" "web" {
-  ami                         = "ami-0a7c0c25409842186"
-  instance_type               = "t2.micro"
+  ami                         = var.ec2_ami
+  instance_type               = var.ec2_instance_type
   subnet_id                   = aws_subnet.subnet_public.id
   vpc_security_group_ids      = [aws_security_group.sg_22_80.id]
   associate_public_ip_address = true
 
+  root_block_device {
+    delete_on_termination = false
+  }
+
   tags = {
     Name = "URL_shortener"
   }
-}
-
-resource "aws_eip" "lb" {
-  instance = aws_instance.web.id
-  vpc      = true
-  depends_on = [aws_internet_gateway.igw]
 }
 
 output "public_ip" {
