@@ -68,6 +68,13 @@ resource "aws_security_group" "sg_22_80" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -85,6 +92,18 @@ resource "aws_instance" "web" {
 
   root_block_device {
     delete_on_termination = false
+  }
+
+  # Wait for EC2 to be ready
+  provisioner "remote-exec" {
+    inline = ["echo 'EC2 is ready'"]
+
+    connection {
+      type = "ssh"
+      user = var.ssh_user
+      host = self.public_ip
+      private_key = file(var.ssh_private_key_path)
+    }
   }
 
   tags = {
