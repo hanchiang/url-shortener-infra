@@ -3,6 +3,36 @@ variable "region" {
   default = "us-east-1"
 }
 
+variable "ssh_public_key_src_path" {
+  type = string
+  default = "/Users/hanchiang/.ssh/url_shortener_rsa.pub"
+}
+
+variable "ssh_public_key_dest_path" {
+  type = string
+  default = "/tmp/url_shortener_rsa.pub"
+}
+
+variable "postgres_schema_src_path" {
+  type = string
+  default = "/Users/hanchiang/Documents/CODING-PROJECTS/NODE/url-shortener/url-shortener-infra/scripts/db/postgres-schema.sql"
+}
+
+variable "postgres_schema_dest_path" {
+  type = string
+  default = "/tmp/postgres-schema.sql"
+}
+
+variable "postgres_password_src_path" {
+  type = string
+  default = "/Users/hanchiang/Documents/CODING-PROJECTS/NODE/url-shortener/url-shortener-infra/secrets/postgres/user_password.txt"
+}
+
+variable "postgres_password_dest_path" {
+  type = string
+  default = "/tmp/postgres-user-password.txt"
+}
+
 
 # source blocks are generated from your builders; a source can be referenced in
 # build blocks. A build block runs provisioners and post-processors on a
@@ -30,21 +60,26 @@ build {
     sources = ["source.amazon-ebs.url_shortener"]
 
     provisioner "file" {
-      source = "/Users/hanchiang/.ssh/url_shortener_rsa.pub"
-      destination = "/tmp/url_shortener_rsa.pub"
+      source = var.ssh_public_key_src_path
+      destination = var.ssh_public_key_dest_path
     }
 
     provisioner "file" {
-      source = "/Users/hanchiang/Documents/CODING-PROJECTS/NODE/url-shortener/url-shortener-infra/scripts/db/postgres-schema.sql"
-      destination = "/tmp/postgres-schema.sql"
+      source = var.postgres_schema_src_path
+      destination = var.postgres_schema_dest_path
     }
 
     provisioner "file" {
-      source = "/Users/hanchiang/Documents/CODING-PROJECTS/NODE/url-shortener/url-shortener-infra/secrets/postgres/user_password.txt"
-      destination = "/tmp/postgres-user-password.txt"
+      source = var.postgres_password_src_path
+      destination = var.postgres_password_dest_path
     }
 
     provisioner "shell" {
-      scripts = ["../scripts/setup-user.sh", "../scripts/install-software.sh"]
+      scripts = ["../scripts/setup-user.sh","../scripts/install-software.sh"]
+      env = {
+        SSH_PUBLIC_KEY_PATH: var.ssh_public_key_dest_path
+        POSTGRES_SCHEMA_PATH: var.postgres_schema_dest_path
+        POSTGRES_PASSWORD_PATH: var.postgres_password_dest_path
+      }
     }
 }

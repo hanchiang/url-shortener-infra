@@ -11,7 +11,7 @@ echo "$USER  ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/$USER
 echo "Adding public ssh keys in authorized_keys/"
 sudo mkdir -p /home/$USER/.ssh
 sudo chmod 700 /home/$USER/.ssh
-sudo cp /tmp/url_shortener_rsa.pub /home/$USER/.ssh/authorized_keys
+sudo cp $SSH_PUBLIC_KEY_PATH /home/$USER/.ssh/authorized_keys
 sudo chmod 600 /home/$USER/.ssh/authorized_keys
 sudo chown -R $USER /home/$USER/.ssh
 sudo usermod --shell /bin/bash $USER

@@ -12,7 +12,7 @@ variable "region"{
 }
 variable "ec2_ami" {
   description = "AMI of the EC2 to be provisioned"
-  default = "ami-0ccffa414772be4aa"
+  default = "ami-0ad9e0c784bd4698a"
 }
 variable "ec2_instance_type" {
   description = "Instance type"

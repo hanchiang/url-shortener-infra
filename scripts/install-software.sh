@@ -2,7 +2,7 @@
 
 USER="han"
 
-POSTGRES_USER_PASSWORD=$(cat /tmp/postgres-user-password.txt)
+POSTGRES_USER_PASSWORD=$(cat $POSTGRES_PASSWORD_PATH)
 sudo rm /tmp/postgres-user-password.txt
 
 sudo apt-get update
@@ -23,8 +23,8 @@ sudo -u postgres createdb $USER
 DB_NAME="url_shortener"
 sudo -u postgres createdb $DB_NAME
 
-sudo -u $USER psql -d $DB_NAME -f /tmp/postgres-schema.sql
-sudo rm /tmp/postgres-schema.sql
+sudo -u $USER psql -d $DB_NAME -f $POSTGRES_SCHEMA_PATH
+sudo rm $POSTGRES_SCHEMA_PATH
 
 # Allow password authentication
 TAB="$(printf '\t')"
