@@ -57,3 +57,6 @@ crash.log
 
 secrets/
 build.log
+instances/dns.tf
+instances/ansible/aws_ec2.yml
+instances/ansible/vars.yml

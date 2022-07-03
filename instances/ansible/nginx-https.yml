@@ -1,0 +1,15 @@
+- hosts: URL_shortener
+  name: Let's encrypt
+  remote_user: "{{ user }}"
+  gather_facts: no
+  vars_files:
+    - ./vars.yml
+  tasks:
+    - name: Install let's encrypt for nginx
+      shell: |  
+        sudo snap install --classic certbot
+        sudo certbot --nginx -d {{ domain }} -d {{ domain }} --non-interactive --agree-tos --email {{ admin_email }}
+        sudo ln -sf /etc/nginx/sites-available/{{ domain }} /etc/nginx/sites-enabled/
+        sudo certbot renew --dry-run
+        sudo systemctl reload nginx
+      

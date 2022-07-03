@@ -107,7 +107,7 @@ server {
 }
 EOF
 
-sudo ln -s /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 
