@@ -3,8 +3,9 @@ This project is the infrastructure as code management for [URL shortener backend
 
 # Structure
 * `images/`: Packer files for building AMI
+    * `scripts/`: Scripts to be run when provisioning AMI
 * `instances/`: Terraform files to provision EC2 in VPC
-* `scripts/`: Scripts to be run when provisioning AMI
+
 
 # Workflow
 ## 1. Provision EC2 AMI using packer
