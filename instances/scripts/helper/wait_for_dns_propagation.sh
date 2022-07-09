@@ -22,7 +22,6 @@ wait_for_dns_propagation () {
     echo "Checking DNS for domain: $domain, ip address: $ip_address"
 
     local seconds_to_wait=120
-    local time_elapsed
 
     start=$(date +%s)
     time_elapsed=$(get_time_elapsed $start | tail -n 1)
@@ -50,6 +49,7 @@ wait_for_dns_propagation () {
         done
         echo "Waiting for DNS to be propagated"
         sleep 10
+        time_elapsed=$(get_time_elapsed $start | tail -n 1)
     done
 
     echo "unable to find dns for $ip_address. Check the DNS settings"

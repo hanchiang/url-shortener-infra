@@ -61,7 +61,6 @@ wait_for_ec2_stop () {
         return 0
     else
         local seconds_to_wait=120
-        local time_elapsed
 
         start=$(date +%s)
         time_elapsed=$(get_time_elapsed $start | tail -n 1)
@@ -78,6 +77,7 @@ wait_for_ec2_stop () {
                 echo "Instance $instance_id has stopped"
                 return 0
             fi
+            time_elapsed=$(get_time_elapsed $start | tail -n 1)
         done
 
         echo "Something went wrong when stopping instance $instance_id"
@@ -99,7 +99,6 @@ start_ec2() {
     fi
 
     local seconds_to_wait=120
-    local time_elapsed
 
     start=$(date +%s)
     time_elapsed=$(get_time_elapsed $start | tail -n 1)
@@ -122,6 +121,7 @@ start_ec2() {
             echo "Instance $instance_id is running. Ip address $instance_ip_address"
             return 0
         fi
+        time_elapsed=$(get_time_elapsed $start | tail -n 1)
     done
     return 1
 }
@@ -191,7 +191,6 @@ wait_for_deploy_success () {
     jobs_url=$1
 
     local seconds_to_wait=120
-    local time_elapsed
 
     start=$(date +%s)
     time_elapsed=$(get_time_elapsed $start | tail -n 1)
@@ -213,6 +212,7 @@ wait_for_deploy_success () {
             echo "Waiting for deploy to be successful"
             echo "job url: $job_url"
             sleep 10
+            time_elapsed=$(get_time_elapsed $start | tail -n 1)
         else
             echo "URL shortener deployment is successful!"
             return 0
