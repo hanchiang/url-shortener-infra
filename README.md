@@ -26,3 +26,7 @@ Make sure DNS is mapped for EC2 before proceeding.
 
 This needs to be done after EC2 is provisioned and its IP addresss is set in route 53
 `ansible/nginx-https.sh <ssh user> <ssh private key path>`
+
+
+## TODO:
+* IAM user and policies for system admin

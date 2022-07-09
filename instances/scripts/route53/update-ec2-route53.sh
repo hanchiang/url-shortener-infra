@@ -33,9 +33,12 @@ echo "Instance is running"
 
 #### Update route53 record set
 echo "Updating route53 record with ip address $instance_ip_address"
-record_set_file="change-record-set.json"
-cat route53/change-record-set.json.tpl | sed "s~INSTANCE_IP_ADDRESS~$instance_ip_address~g" \
+record_set_file="route53/change-record-set.json"
+record_set_template_file="route53/change-record-set.json.tpl"
+
+cat $record_set_template_file | sed "s~INSTANCE_IP_ADDRESS~$instance_ip_address~g" \
 | sed "s~DOMAIN~$DOMAIN~g" > $record_set_file
 aws route53 change-resource-record-sets --hosted-zone-id Z036374065L40GHHCTH5 --change-batch file://$record_set_file > /dev/null 2>&1
+
 rm $record_set_file
 echo "Updated route53 record with ip address $instance_ip_address"

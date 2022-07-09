@@ -15,28 +15,28 @@ SSH_USER=$3
 SSH_PRIVATE_KEY_PATH=$4
 
 usage () {
-    echo "start usage: <path/to/script> <domain> <github token> <ssh user> <ssh private key path>"
+    echo "Invalid $1. usage: <path/to/script> <domain> <github token> <ssh user> <ssh private key path>"
     exit 1
 }
 
 if [ -z "$DOMAIN"  ];
 then
-    usage
+    usage "domain"
 fi
 
 if [ -z "$GITHUB_TOKEN"  ];
 then
-    usage
+    usage "github token"
 fi
 
 if [ -z "$SSH_USER"  ];
 then
-    usage
+    usage "ssh user"
 fi
 
 if [ -z "$SSH_PRIVATE_KEY_PATH"  ];
 then
-    usage
+    usage "ssh private key path"
 fi
 
 
@@ -68,7 +68,7 @@ wait_for_ec2_stop () {
 
         while [ "$instance_state" != "stopped" ] && [ "$time_elapsed" -lt "$seconds_to_wait" ];
         do
-            echo "Waiting for instance to be stopped"
+            echo "Waiting for instance $instance_id to be stopped"
             sleep 10
             instance_info=$(get_instance_info)
             instance_state=$(echo $instance_info | jq -r '.state')
@@ -109,7 +109,7 @@ start_ec2() {
 
     while [ "$instance_state" != "running" ] && [ "$time_elapsed" -lt "$seconds_to_wait" ];
     do
-        echo "Waiting for instance to be running"
+        echo "Waiting for instance $instance_id to be running"
         sleep 10
 
         instance_info=$(get_instance_info)
@@ -200,7 +200,6 @@ wait_for_deploy_success () {
     do
         echo -e "Getting the deploy job: $jobs_url"
 
-        # TODO: debug why the hell variables below are null  
         deploy_job=$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token $GITHUB_TOKEN" $jobs_url | jq '[.jobs[] | select(.name | ascii_downcase | contains("deploy"))][0]')
         job_name=$(echo $deploy_job | jq -r '.name')
         job_conclusion=$(echo $deploy_job | jq -r '.conclusion')
