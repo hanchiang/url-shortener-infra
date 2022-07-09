@@ -1,8 +1,8 @@
 name: Start URL shortener
 on:
-  push:
-    branches:
-      - feature/*
+  schedule:
+    - cron: '0,5 1 * * *'
+    - cron: '0,5 11 * * *'
 jobs:
   start_url_shortener:
     runs-on: ubuntu-latest
@@ -15,8 +15,18 @@ jobs:
       AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
       ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
+      SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
     steps:
       - uses: actions/checkout@v3
+      - name: Check if EC2 is already running
+        run: |
+          curl $DOMAIN
+          if [ $? -eq 0 ]
+          then
+            # TODO: Hit the URL shortener health check endpoint instead
+            echo "EC2 is already running"
+            curl -X POST -H 'Content-type: application/json' --data '{"text":"EC2 is already running at $(date +%Y-%m-%dT%H:%M:%S)"}' $SLACK_WEBHOOK
+          fi
       - name: Set up ansible
         run: |
           pwd
@@ -81,3 +91,4 @@ jobs:
         run: | 
           cd instances
           ./scripts/start.sh $DOMAIN $URL_SHORTENER_REDEPLOY_TOKEN $SSH_USER ~/.ssh/url_shortener_rsa
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"Successfully started EC2 and deployed URL shortener at $(date +%Y-%m-%dT%H:%M:%S)"}' $SLACK_WEBHOOK

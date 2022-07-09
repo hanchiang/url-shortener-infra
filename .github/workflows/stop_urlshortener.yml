@@ -1,8 +1,8 @@
 name: Stop URL shortener
 on:
-  push:
-    branches:
-      - feature/dontrun
+  schedule:
+    - cron: '0,5 4 * * *'
+    - cron: '0,5 16 * * *'
 jobs:
   stop_url_shortener:
     runs-on: ubuntu-latest
@@ -10,10 +10,23 @@ jobs:
       AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
       AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
+      SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
     steps:
-      - uses: actions/checkout@v3      
+      - uses: actions/checkout@v3
+      - name: Check if EC2 is already stopped
+        run: |
+          curl $DOMAIN
+          if [ $? -ne 0 ]
+          then
+            # TODO: Hit the URL shortener health check endpoint instead
+            echo "EC2 is already stopped"
+            curl -X POST -H 'Content-type: application/json' --data '{"text":"EC2 is already stopped at $(date +%Y-%m-%dT%H:%M:%S)"}' $SLACK_WEBHOOK
+          fi
       - name: Create AWS config and credentials
         run: |
+          pwd
+          ls -la
+
           mkdir ~/.aws/
           cat << EOF > ~/.aws/config
           [default]
@@ -32,3 +45,4 @@ jobs:
         run: | 
           cd instances
           ./scripts/stop.sh
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"Successfully stopped EC2 at $(date +%Y-%m-%dT%H:%M:%S)"}' $SLACK_WEBHOOK
