@@ -12,7 +12,7 @@ variable "region"{
 }
 variable "ec2_ami" {
   description = "AMI of the EC2 to be provisioned"
-  default = "ami-0a1597386157a8edc"
+  default = "ami-0a8cc27b6ca340827"
 }
 variable "ec2_instance_type" {
   description = "Instance type"
@@ -25,6 +25,7 @@ variable "route53_zone_id" {
 variable "ssh_private_key_path" {
   description = "Private SSH key for EC2"
   default = "/Users/hanchiang/.ssh/url_shortener_rsa"
+  sensitive = true
 }
 
 variable "ssh_public_key_path" {
@@ -34,4 +35,5 @@ variable "ssh_public_key_path" {
 
 variable "ssh_user" {
   default = "han"
+  sensitive = true
 }

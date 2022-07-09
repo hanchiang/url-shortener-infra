@@ -3,8 +3,10 @@ This project is the infrastructure as code management for [URL shortener backend
 
 # Structure
 * `images/`: Packer files for building AMI
+    * `scripts/`: Scripts to be run when provisioning AMI
 * `instances/`: Terraform files to provision EC2 in VPC
-* `scripts/`: Scripts to be run when provisioning AMI
+    * `scripts/`: Scripts to automate start and stop of EC2, DNS, and deployment of [URL shortener backend](https://github.com/hanchiang/url-shortener-backend)
+
 
 # Workflow
 ## 1. Provision EC2 AMI using packer
@@ -24,3 +26,7 @@ Make sure DNS is mapped for EC2 before proceeding.
 
 This needs to be done after EC2 is provisioned and its IP addresss is set in route 53
 `ansible/nginx-https.sh <ssh user> <ssh private key path>`
+
+
+## TODO:
+* IAM user and policies for system admin

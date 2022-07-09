@@ -15,7 +15,7 @@ variable "ssh_public_key_dest_path" {
 
 variable "postgres_schema_src_path" {
   type = string
-  default = "/Users/hanchiang/Documents/CODING-PROJECTS/NODE/url-shortener/url-shortener-infra/scripts/db/postgres-schema.sql"
+  default = "/Users/hanchiang/Documents/CODING-PROJECTS/NODE/url-shortener/url-shortener-infra/images/scripts/db/postgres-schema.sql"
 }
 
 variable "postgres_schema_dest_path" {
@@ -43,6 +43,7 @@ source "amazon-ebs" "url_shortener" {
   region        = var.region
   force_deregister   = true
   force_delete_snapshot = true
+  ssh_username = "ubuntu"
 
   source_ami_filter {
     filters = {
@@ -53,7 +54,12 @@ source "amazon-ebs" "url_shortener" {
     most_recent = true
     owners      = ["099720109477"]
   }
-  ssh_username = "ubuntu"
+
+  launch_block_device_mappings {
+    device_name = "/dev/sda1"
+    volume_size = 8
+  }
+  
 }
 
 build {
@@ -75,7 +81,7 @@ build {
     }
 
     provisioner "shell" {
-      scripts = ["../scripts/setup-user.sh","../scripts/install-software.sh"]
+      scripts = ["./scripts/setup-user.sh", "./scripts/install-software.sh"]
       env = {
         SSH_PUBLIC_KEY_PATH: var.ssh_public_key_dest_path
         POSTGRES_SCHEMA_PATH: var.postgres_schema_dest_path
