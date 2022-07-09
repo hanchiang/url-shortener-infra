@@ -5,6 +5,7 @@ This project is the infrastructure as code management for [URL shortener backend
 * `images/`: Packer files for building AMI
     * `scripts/`: Scripts to be run when provisioning AMI
 * `instances/`: Terraform files to provision EC2 in VPC
+    * `scripts/`: Scripts to automate start and stop of EC2, DNS, and deployment of [URL shortener backend](https://github.com/hanchiang/url-shortener-backend)
 
 
 # Workflow
