@@ -1,0 +1,34 @@
+name: Stop URL shortener
+on:
+  push:
+    branches:
+      - feature/dontrun
+jobs:
+  stop_url_shortener:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+      AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+    steps:
+      - uses: actions/checkout@v3      
+      - name: Create AWS config and credentials
+        run: |
+          mkdir ~/.aws/
+          cat << EOF > ~/.aws/config
+          [default]
+          region = $AWS_REGION
+          output = json
+          EOF
+          chmod 600 ~/.aws/config
+
+          cat << EOF > ~/.aws/credentials
+          [default]
+          aws_access_key_id = $AWS_ACCESS_KEY
+          aws_secret_access_key = $AWS_SECRET_KEY
+          EOF
+          chmod 600 ~/.aws/credentials
+      - name: Run stop script
+        run: | 
+          cd instances
+          ./scripts/stop.sh

@@ -16,15 +16,16 @@ jobs:
       ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
     steps:
-      - uses: actions/checkout@v3      
+      - uses: actions/checkout@v3
       - name: Set up ansible
         run: |
           pwd
           ls -la
 
-          # Install ansible
+          # Install ansible and required dependencies
           sudo apt-get update
           sudo apt-get -y install ansible
+          pip3 install --no-input boto3
 
           # Ansible config
           cat << EOF | sudo tee /etc/ansible/ansible.cfg > /dev/null
