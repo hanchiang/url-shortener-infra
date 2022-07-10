@@ -1,8 +1,10 @@
 name: Stop URL shortener
 on:
   schedule:
-    - cron: '0,5 4 * * *'
-    - cron: '0,5 16 * * *'
+    # Run a few times for each schedule, just in case there some transient errors occurs during the run
+    - cron: '0,5,10 14 * * 1-5' # weekdays
+    - cron: '0,5,10 4 * * 0,6' # weekends, 0 = sunday
+    - cron: '0,5,10 15 * * *'  # weekends, 0 = sunday
 jobs:
   stop_url_shortener:
     runs-on: ubuntu-latest
@@ -10,6 +12,7 @@ jobs:
       AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
       AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
+      DOMAIN: ${{ secrets.DOMAIN }}
       SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
     steps:
       - uses: actions/checkout@v3
@@ -44,5 +47,5 @@ jobs:
       - name: Run stop script
         run: | 
           cd instances
-          ./scripts/stop.sh
+          ./scripts/stop.sh $DOMAIN
           curl -X POST -H 'Content-type: application/json' --data '{"text":"Successfully stopped EC2 at $(date +%Y-%m-%dT%H:%M:%S)"}' $SLACK_WEBHOOK

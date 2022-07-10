@@ -60,3 +60,4 @@ build.log
 instances/dns.tf
 instances/ansible/aws_ec2.yml
 instances/ansible/vars.yml
+instances/scripts/route53/change-record-set.json
