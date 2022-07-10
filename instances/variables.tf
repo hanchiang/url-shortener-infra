@@ -6,13 +6,17 @@ variable "cidr_subnet" {
   description = "CIDR block for the subnet"
   default     = "10.1.0.0/24"
 }
+variable "my_cidr" {
+  description = "CIDR of my network"
+  default = "115.66.0.0/16"
+}
 variable "region"{
   description = "The region Terraform deploys your instance"
   default = "us-east-1"
 }
 variable "ec2_ami" {
   description = "AMI of the EC2 to be provisioned"
-  default = "ami-0c6f0bbec36bbb9c8"
+  default = "ami-0ea7da9bb71c4cb62"
 }
 variable "ec2_instance_type" {
   description = "Instance type"

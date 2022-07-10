@@ -60,8 +60,8 @@ sudo apt-get -y install nginx=1.18.0-3ubuntu1+focal2
 sudo ufw --force enable
 sudo ufw allow 'Nginx Full'
 sudo ufw status
-sudo systemctl start nginx
 sudo systemctl enable nginx
+sudo systemctl start nginx
 
 localhost=$(ip addr show eth0 | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
 curl $localhost
@@ -122,7 +122,7 @@ EOF
 
 sudo ln -sf /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/
 sudo nginx -t
-sudo systemctl restart nginx
+sudo systemctl reload nginx
 
 
 #### Install docker

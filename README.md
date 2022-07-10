@@ -21,7 +21,7 @@ cd into `instances/`
 Copy the AMI ID from packer build, update it in `variables.tf`
 Provision infra: `terraform apply`
 
-## 3. Set up let's encrypt with nginx**
+## 3. configure SSL for nginx**
 Make sure DNS is mapped for EC2 before proceeding.
 
 This needs to be done after EC2 is provisioned and its IP addresss is set in route 53

@@ -79,8 +79,7 @@ wait_for_ec2_stop () {
             time_elapsed=$(get_time_elapsed $start | tail -n 1)
         done
 
-        echo "Something went wrong when stopping instance $instance_id"
-        return 1
+        echo "Instance $instance_id did not stop after $seconds_to_wait seconds"
     fi
 }
 
@@ -122,7 +121,7 @@ start_ec2() {
         fi
         time_elapsed=$(get_time_elapsed $start | tail -n 1)
     done
-    return 1
+    echo "Instance $instance_id is not runnign after $seconds_to_wait seconds"
 }
 
 #### Trigger github action deployment

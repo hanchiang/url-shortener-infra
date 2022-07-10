@@ -49,16 +49,15 @@ resource "aws_route_table_association" "rta_subnet_public" {
   route_table_id = aws_route_table.rtb_public.id
 }
 
-resource "aws_security_group" "sg_22_80" {
-  name   = "sg_22"
+resource "aws_security_group" "sg_22_80_443" {
+  name   = "sg_22_80_443"
   vpc_id = aws_vpc.vpc.id
 
-  # SSH access from the VPC
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.my_cidr]
   }
 
   ingress {
@@ -87,7 +86,7 @@ resource "aws_instance" "web" {
   ami                         = var.ec2_ami
   instance_type               = var.ec2_instance_type
   subnet_id                   = aws_subnet.subnet_public.id
-  vpc_security_group_ids      = [aws_security_group.sg_22_80.id]
+  vpc_security_group_ids      = [aws_security_group.sg_22_80_443.id]
   associate_public_ip_address = true
 
   root_block_device {

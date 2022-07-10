@@ -2,9 +2,9 @@ name: Stop URL shortener
 on:
   schedule:
     # Run a few times for each schedule, just in case there some transient errors occurs during the run
-    - cron: '0,5,10 14 * * 1-5' # weekdays
-    - cron: '0,5,10 4 * * 0,6' # weekends, 0 = sunday
-    - cron: '0,5,10 15 * * *'  # weekends, 0 = sunday
+    - cron: '50 13 * * 1-5' # weekdays
+    - cron: '50 3 * * 0,6' # weekends, 0 = sunday
+    - cron: '50 14 * * *'  # weekends, 0 = sunday
 jobs:
   stop_url_shortener:
     runs-on: ubuntu-latest

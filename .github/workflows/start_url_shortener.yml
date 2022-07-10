@@ -2,9 +2,9 @@ name: Start URL shortener
 on:
   schedule:
     # Run a few times for each schedule, just in case there some transient errors occurs during the run
-    - cron: '0,5,10 12 * * 1-5' # weekdays
-    - cron: '0,5,10 2 * * 0,6' # weekends, 0 = sunday
-    - cron: '0,5,10 6 * * 0,6' # weekends, 0 = sunday
+    - cron: '50 11 * * 1-5' # weekdays
+    - cron: '50 1 * * 0,6' # weekends, 0 = sunday
+    - cron: '50 5 * * 0,6' # weekends, 0 = sunday
 jobs:
   start_url_shortener:
     runs-on: ubuntu-latest
@@ -43,6 +43,17 @@ jobs:
 
           # Ansible config
           cat << EOF | sudo tee /etc/ansible/ansible.cfg > /dev/null
+          # Since Ansible 2.12 (core):
+          # To generate an example config file (a "disabled" one with all default settings, commented out):
+          #               $ ansible-config init --disabled > ansible.cfg
+          #
+          # Also you can now have a more complete file by including existing plugins:
+          # ansible-config init --disabled -t all > ansible.cfg
+
+          # For previous versions of Ansible you can check for examples in the 'stable' branches of each version
+          # Note that this file was always incomplete  and lagging changes to configuration settings
+
+          # for example, for 2.9: https://github.com/ansible/ansible/blob/stable-2.9/examples/ansible.cfg
           [inventory]
           enable_plugins = aws_ec2
 
