@@ -50,4 +50,8 @@ jobs:
         run: | 
           cd instances
           ./scripts/stop.sh $DOMAIN
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"Successfully stopped EC2 at $(date +%Y-%m-%dT%H:%M:%S)"}' $SLACK_WEBHOOK
+      - name: Send slack notification
+        run: |
+          now=$(date +%Y-%m-%dT%H:%M:%S)
+          payload=$(echo "{\"text\":\"Successfully stopped EC2 at <DATE>\"}" | sed "s~<DATE>~$now~")
+          curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK
