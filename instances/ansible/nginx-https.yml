@@ -1,29 +1,77 @@
 - hosts: URL_shortener
-  name: Let's encrypt
+  name: Configure SSL for nginx using acme
   remote_user: "{{ user }}"
   gather_facts: no
   vars_files:
     - ./vars.yml
   tasks:
-    - name: Install let's encrypt for nginx
+    - name: Set variables
+      set_fact:
+        ssl_cert_file_path: /etc/ssl/{{ domain }}/certificate.crt
+        ssl_key_file_path: /etc/ssl/{{ domain }}/private.key
+    - name: Install SSL cert
       args:
         executable: /bin/bash
-      shell: |  
-        sudo snap install --classic certbot
+      register: install_ssl
+      become: yes
+      become_method: su
+      become_user: root
+      become_exe: "sudo su -"
+      async: 300
+      poll: 10
+      shell: |
+        export DEBIAN_FRONTEND=noninteractive
 
-        # check if certificate is already installed
-        cert_domains=($(sudo certbot certificates | grep Domains | sed "s~^[[:space:]]*~~" | sed "s~[[:space:]]*$~~" | cut -d ' ' -f 2))
+        mkdir -p /etc/ssl/{{ domain }}
 
-        for cert_domain in "${cert_domains[@]}"
-        do
-          if [ "cert_domain" == {{ domain }} ]
-          then
-            echo "Certificate is already installed for {{ domain }}"
-            return 0
-          fi
-        done
-        sudo certbot --nginx -d {{ domain }} --non-interactive --agree-tos --email {{ admin_email }}
-        sudo ln -sf /etc/nginx/sites-available/{{ domain }} /etc/nginx/sites-enabled/
-        sudo certbot renew --dry-run
-        sudo systemctl reload nginx
+        apt-get -y install socat
+        curl https://get.acme.sh | sh -s email={{ admin_email }}
         
+        ~/.acme.sh/acme.sh --issue -d {{ domain }} --nginx
+        ~/.acme.sh/acme.sh --install-cert -d {{ domain }} --key-file {{ ssl_key_file_path }} \
+        --fullchain-file {{ ssl_cert_file_path }} --reloadcmd "sudo systemctl reload nginx"
+
+        # Run cron to renew certs to verify result
+        ~/.acme.sh/acme.sh --cron
+    - debug: var=install_ssl.stdout_lines
+    - debug: var=install_ssl.stderr_lines
+    - name: Update nginx config
+      register: update_nginx_config
+      shell: |
+        cat <<EOF | sudo tee /etc/nginx/sites-available/{{ domain }} > /dev/null
+        upstream url_shortener_backend {
+          server localhost:3000;
+        }
+
+        server {
+          listen 80;
+          listen [::]:80;
+
+          server_name {{ domain }};
+
+          return 301 \$host\$request_uri;
+        }
+
+        server {
+          listen 443 ssl;
+
+          ssl_certificate      {{ ssl_cert_file_path }};
+          ssl_certificate_key  {{ ssl_key_file_path }};
+
+          server_name {{ domain }};
+
+          location / {
+            proxy_pass http://url_shortener_backend;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header Host \$host;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+          }
+        }
+        EOF
+        sudo ln -sf /etc/nginx/sites-available/{{ domain }} /etc/nginx/sites-enabled/
+        sudo nginx -t
+        sudo systemctl reload nginx
+    - debug: var=update_nginx_config.stdout_lines
+    - debug: var=update_nginx_config.stderr_lines
+
+

@@ -29,15 +29,7 @@ then
     usage
 fi
 
-echo "Setting up let's encrypt for nginx"
-
-nslookup $DOMAIN
-while [ $? -ne 0 ];
-do
-    echo "Waiting for DNS for $DOMAIN to be propagated..."
-    sleep 5
-    nslookup $DOMAIN
-done
+echo "Configuring SSL for nginx"
 
 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u $SSH_USER -i aws_ec2.yml --private-key $SSH_PRIVATE_KEY_PATH nginx-https.yml
 echo "HTTPS for nginx is set up successfully"
