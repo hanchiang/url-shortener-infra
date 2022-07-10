@@ -18,20 +18,23 @@ jobs:
       ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      URL_SHORTENER_HOST_NAME: ${{ secrets.URL_SHORTENER_HOST_NAME }}
     steps:
       - uses: actions/checkout@v3
       - name: Check if EC2 is already running
         run: |
-          curl $DOMAIN
+          curl $URL_SHORTENER_HOST_NAME/healthz
           if [ $? -eq 0 ]
           then
-            # TODO: Hit the URL shortener health check endpoint instead
-            echo "EC2 is already running"
+            echo "URL shortener is already running"
             now=$(date +%Y-%m-%dT%H:%M:%S)
             payload=$(echo "{\"text\":\"EC2 is already running at <DATE>\"}" | sed "s~<DATE>~$now~")
             curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK
+            return 0
           fi
+          curl $URL_SHORTENER_HOST_NAME/healthz
       - name: Set up ansible
+        if: ${{ failure() }}
         run: |
           pwd
           ls -la

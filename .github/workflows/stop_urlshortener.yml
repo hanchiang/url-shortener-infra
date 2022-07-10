@@ -14,20 +14,22 @@ jobs:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       DOMAIN: ${{ secrets.DOMAIN }}
       SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      URL_SHORTENER_HOST_NAME: ${{ secrets.URL_SHORTENER_HOST_NAME }}
     steps:
       - uses: actions/checkout@v3
       - name: Check if EC2 is already stopped
         run: |
-          curl $DOMAIN
+          curl $URL_SHORTENER_HOST_NAME/healthz
           if [ $? -ne 0 ]
           then
-            # TODO: Hit the URL shortener health check endpoint instead
             echo "EC2 is already stopped"
             now=$(date +%Y-%m-%dT%H:%M:%S)
             payload=$(echo "{\"text\":\"EC2 is already stopped at <DATE>\"}" | sed "s~<DATE>~$now~")
             curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK
           fi
+          curl $URL_SHORTENER_HOST_NAME/healthz
       - name: Create AWS config and credentials
+        if: ${{ success() }}
         run: |
           pwd
           ls -la
