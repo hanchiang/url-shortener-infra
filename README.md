@@ -27,6 +27,10 @@ Make sure DNS is mapped for EC2 before proceeding.
 This needs to be done after EC2 is provisioned and its IP addresss is set in route 53
 `ansible/nginx-https.sh <ssh user> <ssh private key path>`
 
+# Operational hours
+EC2 and URL shortener will run from:
+* 12pm UTC - 2pm UTC on weekdays
+* 2am UTC - 4am UTC, 6am UTC - 3pm UTC on weekends
 
 ## TODO:
 * IAM user and policies for system admin

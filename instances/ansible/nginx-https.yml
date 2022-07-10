@@ -12,7 +12,7 @@
         sudo snap install --classic certbot
 
         # check if certificate is already installed
-        cert_domains=($(sudo certbot certificates | grep Domains | sed "s~^[[:space:]]*~~" | cut -d ' ' -f 2))
+        cert_domains=($(sudo certbot certificates | grep Domains | sed "s~^[[:space:]]*~~" | sed "s~[[:space:]]*$~~" | cut -d ' ' -f 2))
 
         for cert_domain in "${cert_domains[@]}"
         do
@@ -22,8 +22,8 @@
             return 0
           fi
         done
-        sudo certbot --nginx -d {{ domain }} -d {{ domain }} --non-interactive --agree-tos --email {{ admin_email }}
+        sudo certbot --nginx -d {{ domain }} --non-interactive --agree-tos --email {{ admin_email }}
         sudo ln -sf /etc/nginx/sites-available/{{ domain }} /etc/nginx/sites-enabled/
         sudo certbot renew --dry-run
         sudo systemctl reload nginx
-      
+        

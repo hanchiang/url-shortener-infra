@@ -1,6 +1,5 @@
 #! /bin/bash
-set -e
-set -o pipefail
+set -eu
 
 dir=$(dirname $0)
 cd $dir
@@ -104,7 +103,7 @@ start_ec2() {
     time_elapsed=$(get_time_elapsed $start | tail -n 1)
 
     echo "Starting ec2 $instance_id"
-    aws ec2 start-instances --instance-ids $instance_id > /dev/null 2>&1
+    aws ec2 start-instances --instance-ids $instance_id > /dev/null
 
     while [ "$instance_state" != "running" ] && [ "$time_elapsed" -lt "$seconds_to_wait" ];
     do
@@ -195,6 +194,9 @@ wait_for_deploy_success () {
     start=$(date +%s)
     time_elapsed=$(get_time_elapsed $start | tail -n 1)
 
+    deploy_job=$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token $GITHUB_TOKEN" $jobs_url | jq '[.jobs[] | select(.name | ascii_downcase | contains("deploy"))][0]')
+    job_conclusion=$(echo $deploy_job | jq -r '.conclusion')
+
     while [ "$job_conclusion" != "success" ] && [ "$time_elapsed" -lt "$seconds_to_wait" ];
     do
         echo -e "Getting the deploy job: $jobs_url"
@@ -226,7 +228,7 @@ wait_for_ec2_stop
 start_ec2
 
 # Update route53 record
-./route53/update-ec2-route53.sh $DOMAIN
+./route53/update-ec2-route53.sh $DOMAIN "UPSERT"
 wait_for_dns_propagation $DOMAIN $instance_ip_address
 
 # Rerun deploy job
@@ -238,7 +240,7 @@ rerun_job $job_id
 jobs_url=$(get_latest_github_workflow | tail -n 1)
 wait_for_deploy_success $jobs_url
 
- # Configure let's encrypt for nginx
+# Configure let's encrypt for nginx
 ../ansible/nginx-https.sh $DOMAIN $SSH_USER $SSH_PRIVATE_KEY_PATH
 
 echo "Script completed in $SECONDS seconds"

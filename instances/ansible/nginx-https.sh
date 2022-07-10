@@ -1,6 +1,6 @@
 #! /bin/bash
 
-set -e
+set -u
 
 dir=$(dirname $0)
 cd $dir

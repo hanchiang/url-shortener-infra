@@ -9,9 +9,13 @@ sudo apt-get update
 
 #### Install postgres, execute database schema script
 echo "Installing postgres"
-sudo apt-get -y install postgresql postgresql-contrib
-sudo systemctl start postgresql.service
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+sudo apt-get update
+sudo apt-get -y install postgresql-13
+
 sudo systemctl enable postgresql
+sudo systemctl start postgresql.service
 
 sudo -u postgres createuser --superuser $USER
 sudo -u postgres psql << EOF
@@ -36,14 +40,23 @@ sudo systemctl restart postgresql.service
 
 #### Install redis
 echo "Installing redis"
-sudo apt-get -y install redis-server
+curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+sudo apt-get update
+sudo apt-get -y install redis-tools=6:6.2.7-1rl1~focal1
+sudo apt-get -y install redis-server=6:6.2.7-1rl1~focal1
+
 sudo sed "s/^supervised no/supervised systemd/" /etc/redis/redis.conf > redis.conf
-sudo systemctl restart redis.service
 sudo systemctl enable redis-server
+sudo systemctl restart redis.service
 
 ### Install nginx
 echo "Installing nginx"
-sudo apt-get -y install nginx
+nginx="stable" # use nginx=development for latest development version
+sudo add-apt-repository -y ppa:nginx/$nginx
+sudo apt-get update
+sudo apt-get -y install nginx=1.18.0-3ubuntu1+focal2
+
 sudo ufw --force enable
 sudo ufw allow 'Nginx Full'
 sudo ufw status

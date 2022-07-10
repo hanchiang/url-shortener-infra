@@ -1,8 +1,10 @@
 name: Start URL shortener
 on:
   schedule:
-    - cron: '0,5 1 * * *'
-    - cron: '0,5 11 * * *'
+    # Run a few times for each schedule, just in case there some transient errors occurs during the run
+    - cron: '0,5,10 12 * * 1-5' # weekdays
+    - cron: '0,5,10 2 * * 0,6' # weekends, 0 = sunday
+    - cron: '0,5,10 6 * * 0,6' # weekends, 0 = sunday
 jobs:
   start_url_shortener:
     runs-on: ubuntu-latest
@@ -25,7 +27,9 @@ jobs:
           then
             # TODO: Hit the URL shortener health check endpoint instead
             echo "EC2 is already running"
-            curl -X POST -H 'Content-type: application/json' --data '{"text":"EC2 is already running at $(date +%Y-%m-%dT%H:%M:%S)"}' $SLACK_WEBHOOK
+            now=$(date +%Y-%m-%dT%H:%M:%S)
+            payload=$(echo "{\"text\":\"EC2 is already running at <DATE>\"}" | sed "s~<DATE>~$now~")
+            curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK
           fi
       - name: Set up ansible
         run: |

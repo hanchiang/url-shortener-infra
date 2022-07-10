@@ -2,14 +2,14 @@
     "Comment": "Upsert route53 record for url_shortener",
     "Changes": [
         {
-            "Action": "UPSERT",
+            "Action": "<ACTION>",
             "ResourceRecordSet": {
-                "Name": "DOMAIN",
+                "Name": "<DOMAIN>",
                 "Type": "A",
-                "TTL": 300,
+                "TTL": <TTL>,
                 "ResourceRecords": [
                     {
-                        "Value": "INSTANCE_IP_ADDRESS"
+                        "Value": "<INSTANCE_IP_ADDRESS>"
                     }
                 ]
             }

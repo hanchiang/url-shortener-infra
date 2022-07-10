@@ -1,7 +1,5 @@
 #! /bin/bash
 
-set -e
-
 source ./helper/timer.sh
 
 wait_for_dns_propagation () {
@@ -28,16 +26,19 @@ wait_for_dns_propagation () {
 
     while [ "$time_elapsed" -lt $seconds_to_wait ];
     do
-        arr=($(nslookup $domain | grep Address | cut -d ' ' -f 2 | grep "^[0-9]"))
+        time_elapsed=$(get_time_elapsed $start | tail -n 1)
+        nslookup_result=$(nslookup $domain | grep Address | cut -d ' ' -f 2 | grep "^[0-9]" | cat)
 
-        if [ "$?" -ne 0 ]
+        if [ -z "$nslookup_result" ]
         then
             echo "DNS record for $domain is not found. Waiting."
             sleep 10
             continue
         fi
 
-        for ip in "${arr[@]}"
+        records=($nslookup_result)
+
+        for ip in "${records[@]}"
         do
             if [ "$ip" == $ip_address ]
             then   
@@ -49,7 +50,6 @@ wait_for_dns_propagation () {
         done
         echo "Waiting for DNS to be propagated"
         sleep 10
-        time_elapsed=$(get_time_elapsed $start | tail -n 1)
     done
 
     echo "unable to find dns for $ip_address. Check the DNS settings"
