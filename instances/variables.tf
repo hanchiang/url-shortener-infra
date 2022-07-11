@@ -6,10 +6,6 @@ variable "cidr_subnet" {
   description = "CIDR block for the subnet"
   default     = "10.1.0.0/24"
 }
-variable "my_cidr" {
-  description = "CIDR of my network"
-  default = "115.66.0.0/16"
-}
 variable "region"{
   description = "The region Terraform deploys your instance"
   default = "us-east-1"
