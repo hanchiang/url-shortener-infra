@@ -112,13 +112,16 @@ jobs:
       - name: Create SSH private key
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          URL_SHORTENER_REDEPLOY_TOKEN: ${{ secrets.URL_SHORTENER_REDEPLOY_TOKEN }}
         run: |
           mkdir -p ~/.ssh/
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/url_shortener_rsa
           chmod 600 ~/.ssh/url_shortener_rsa
       - name: Run start script
         id: start_script
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          URL_SHORTENER_REDEPLOY_TOKEN: ${{ secrets.URL_SHORTENER_REDEPLOY_TOKEN }}
+          DOMAIN: ${{ secrets.DOMAIN }}
         run: | 
           cd instances
           ./scripts/start.sh $DOMAIN $URL_SHORTENER_REDEPLOY_TOKEN $SSH_USER ~/.ssh/url_shortener_rsa
