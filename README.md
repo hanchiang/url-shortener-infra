@@ -34,3 +34,6 @@ EC2 and URL shortener will run from:
 
 ## TODO:
 * IAM user and policies for system admin
+* container image scan
+* Collect metric
+* Centralised log collection
