@@ -6,30 +6,39 @@ on:
     - cron: '50 3 * * 0,6' # weekends, 0 = sunday
     - cron: '50 14 * * *'  # weekends, 0 = sunday
 jobs:
-  stop_url_shortener:
+  health_check:
     runs-on: ubuntu-latest
     env:
-      AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
-      AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      DOMAIN: ${{ secrets.DOMAIN }}
-      SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
       URL_SHORTENER_HOST_NAME: ${{ secrets.URL_SHORTENER_HOST_NAME }}
     steps:
-      - uses: actions/checkout@v3
       - name: Check if EC2 is already stopped
         run: |
-          curl $URL_SHORTENER_HOST_NAME/healthz
-          if [ $? -ne 0 ]
-          then
-            echo "EC2 is already stopped"
-            now=$(date +%Y-%m-%dT%H:%M:%S)
-            payload=$(echo "{\"text\":\"EC2 is already stopped at <DATE>\"}" | sed "s~<DATE>~$now~")
-            curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK
-          fi
-          curl $URL_SHORTENER_HOST_NAME/healthz
+          curl $URL_SHORTENER_HOST_NAME
+  notify_ec2_already_stopped:
+    runs-on: ubuntu-latest
+    needs: [health_check]
+    if: ${{ failure() }}
+    steps:
+      - name: Send slack notification EC2 is already stopped
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          now=$(date +%Y-%m-%dT%H:%M:%S)
+          payload=$(echo "{\"text\":\"URL shortener infra: EC2 is already stopped at <DATE>\"}" | sed "s~<DATE>~$now~")
+          curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK
+          exit 0
+  stop_ec2:
+    runs-on: ubuntu-latest
+    needs: [notify_ec2_already_stopped]
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      DOMAIN: ${{ secrets.DOMAIN }}
+    steps:
+      - uses: actions/checkout@v3
       - name: Create AWS config and credentials
-        if: ${{ success() }}
+        env:
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
         run: |
           pwd
           ls -la
@@ -52,8 +61,26 @@ jobs:
         run: | 
           cd instances
           ./scripts/stop.sh $DOMAIN
-      - name: Send slack notification
+  notify_unsuccesful_run:
+    runs-on: ubuntu-latest
+    needs: [stop_ec2]
+    if: ${{ failure() }}
+    steps:
+      - name: Send slack notification unsuccessful run
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         run: |
           now=$(date +%Y-%m-%dT%H:%M:%S)
-          payload=$(echo "{\"text\":\"Successfully stopped EC2 at <DATE>\"}" | sed "s~<DATE>~$now~")
+          payload=$(echo "{\"text\":\"URL shortener infra: Failed to stop EC2 at <DATE>\"}" | sed "s~<DATE>~$now~")
+          curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK
+  notify_successful_run:
+    runs-on: ubuntu-latest
+    needs: [stop_ec2]
+    steps:
+      - name: Send slack notification successful run
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          now=$(date +%Y-%m-%dT%H:%M:%S)
+          payload=$(echo "{\"text\":\"URL shortener infra: Successfully stopped EC2 at <DATE>\"}" | sed "s~<DATE>~$now~")
           curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK

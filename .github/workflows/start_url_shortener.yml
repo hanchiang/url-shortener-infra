@@ -6,35 +6,41 @@ on:
     - cron: '50 1 * * 0,6' # weekends, 0 = sunday
     - cron: '50 5 * * 0,6' # weekends, 0 = sunday
 jobs:
-  start_url_shortener:
+  health_check:
     runs-on: ubuntu-latest
     env:
-      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      URL_SHORTENER_REDEPLOY_TOKEN: ${{ secrets.URL_SHORTENER_REDEPLOY_TOKEN }}
-      DOMAIN: ${{ secrets.DOMAIN }}
-      SSH_USER: ${{ secrets.SSH_USER }}
-      AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
-      AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
-      ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
       URL_SHORTENER_HOST_NAME: ${{ secrets.URL_SHORTENER_HOST_NAME }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Check if EC2 is already running
+      - name: Check if URL shortener is already running
         run: |
           curl $URL_SHORTENER_HOST_NAME/healthz
-          if [ $? -eq 0 ]
-          then
-            echo "URL shortener is already running"
-            now=$(date +%Y-%m-%dT%H:%M:%S)
-            payload=$(echo "{\"text\":\"EC2 is already running at <DATE>\"}" | sed "s~<DATE>~$now~")
-            curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK
-            return 0
-          fi
-          curl $URL_SHORTENER_HOST_NAME/healthz
+  notify_already_running:
+    runs-on: ubuntu-latest
+    needs: [health_check]
+    steps:
+      - name: Send slack notification URL shortener is already running
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          now=$(date +%Y-%m-%dT%H:%M:%S)
+          payload=$(echo "{\"text\":\"URL shortener infra: URL shortener is already running at <DATE>\"}" | sed "s~<DATE>~$now~")
+          curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK
+          exit 0
+  start_ec2_and_deploy:
+    runs-on: ubuntu-latest
+    needs: [health_check]
+    if: ${{ failure() }}
+    env:
+      DOMAIN: ${{ secrets.DOMAIN }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+      ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+    steps:
+      - uses: actions/checkout@v3
       - name: Set up ansible
-        if: ${{ failure() }}
+        env:
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
         run: |
           pwd
           ls -la
@@ -85,6 +91,9 @@ jobs:
           admin_email: $ADMIN_EMAIL
           EOF
       - name: Create AWS config and credentials
+        env:
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
         run: |
           mkdir ~/.aws/
           cat << EOF > ~/.aws/config
@@ -101,16 +110,38 @@ jobs:
           EOF
           chmod 600 ~/.aws/credentials
       - name: Create SSH private key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          URL_SHORTENER_REDEPLOY_TOKEN: ${{ secrets.URL_SHORTENER_REDEPLOY_TOKEN }}
         run: |
           mkdir -p ~/.ssh/
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/url_shortener_rsa
           chmod 600 ~/.ssh/url_shortener_rsa
       - name: Run start script
+        id: start_script
         run: | 
           cd instances
           ./scripts/start.sh $DOMAIN $URL_SHORTENER_REDEPLOY_TOKEN $SSH_USER ~/.ssh/url_shortener_rsa
-      - name: Send slack notification
+  notify_unsuccessful:
+    runs-on: ubuntu-latest
+    needs: [start_ec2_and_deploy]
+    if: ${{ failure() }}
+    steps:
+      - name: Send slack notification unsuccessful run
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         run: |
           now=$(date +%Y-%m-%dT%H:%M:%S)
-          payload=$(echo "{\"text\":\"Successfully started EC2 and deployed URL shortener at <DATE>\"}" | sed "s~<DATE>~$now~")
+          payload=$(echo "{\"text\":\"URL shortener backend: Failed to start EC2 and deploy URL shortener at <DATE>\"}" | sed "s~<DATE>~$now~")
+          curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK
+  notify_successful:
+    runs-on: ubuntu-latest
+    needs: [start_ec2_and_deploy]
+    steps:
+      - name: Send slack notification successful run
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          now=$(date +%Y-%m-%dT%H:%M:%S)
+          payload=$(echo "{\"text\":\"URL shortener infra: Successfully started EC2 and deployed URL shortener at <DATE>\"}" | sed "s~<DATE>~$now~")
           curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK
