@@ -230,6 +230,9 @@ start_ec2
 ./route53/update-ec2-route53.sh $DOMAIN "UPSERT"
 wait_for_dns_propagation $DOMAIN $instance_ip_address
 
+# Configure let's encrypt for nginx
+../ansible/nginx-https.sh $DOMAIN $SSH_USER $SSH_PRIVATE_KEY_PATH
+
 # Rerun deploy job
 jobs_url=$(get_latest_github_workflow | tail -n 1)
 job_id=$(get_latest_deploy_job $jobs_url | tail -n 1)
@@ -238,8 +241,5 @@ rerun_job $job_id
 # Get deploy job status
 jobs_url=$(get_latest_github_workflow | tail -n 1)
 wait_for_deploy_success $jobs_url
-
-# Configure let's encrypt for nginx
-../ansible/nginx-https.sh $DOMAIN $SSH_USER $SSH_PRIVATE_KEY_PATH
 
 echo "Script completed in $SECONDS seconds"
