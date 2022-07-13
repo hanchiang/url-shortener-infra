@@ -64,7 +64,7 @@ jobs:
   notify_unsuccesful_run:
     runs-on: ubuntu-latest
     needs: [stop_ec2]
-    if: ${{ failure() }}
+    if: ${{ needs.stop_ec2 == 'failure' }}
     steps:
       - name: Send slack notification unsuccessful run
         env:
