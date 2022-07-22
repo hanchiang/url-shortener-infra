@@ -63,6 +63,12 @@
           access_log {{ FS_MOUNT_PATH }}/nginx/access.log;
           error_log {{ FS_MOUNT_PATH }}/nginx/error.log;
 
+          location = /favicon.ico {
+            return 204;
+            access_log     off;
+            log_not_found  off;
+          }
+
           location / {
             proxy_pass http://url_shortener_backend;
             proxy_set_header X-Real-IP \$remote_addr;
