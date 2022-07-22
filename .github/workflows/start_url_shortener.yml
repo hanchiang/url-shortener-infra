@@ -86,9 +86,11 @@ jobs:
 
           # Create variables
           cat << EOF > ./instances/ansible/vars.yml
-          user: $SSH_USER
-          domain: $DOMAIN
-          admin_email: $ADMIN_EMAIL
+          USER: $SSH_USER
+          DOMAIN: $DOMAIN
+          ADMIN_EMAIL: $ADMIN_EMAIL
+          FS_MOUNT_PATH: $FS_MOUNT_PATH
+          EBS_DEVICE_PATH: $EBS_DEVICE_PATH
           EOF
       - name: Create AWS config and credentials
         env:
