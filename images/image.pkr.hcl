@@ -33,6 +33,15 @@ variable "postgres_password_dest_path" {
   default = "/tmp/postgres-user-password.txt"
 }
 
+variable "ebs_device_name" {
+  type = string
+  default = "/dev/xvdf"
+}
+
+variable "fs_mount_path" {
+  type = string
+  default = "/mnt/data"
+}
 
 # source blocks are generated from your builders; a source can be referenced in
 # build blocks. A build block runs provisioners and post-processors on a
@@ -55,11 +64,9 @@ source "amazon-ebs" "url_shortener" {
     owners      = ["099720109477"]
   }
 
-  launch_block_device_mappings {
-    device_name = "/dev/sda1"
-    volume_size = 8
+  tags = {
+    Name = "URL_shortener"
   }
-  
 }
 
 build {
@@ -81,11 +88,56 @@ build {
     }
 
     provisioner "shell" {
-      scripts = ["./scripts/setup-user.sh", "./scripts/install-software.sh"]
+      scripts = ["./scripts/setup-user.sh"]
       env = {
         SSH_PUBLIC_KEY_PATH: var.ssh_public_key_dest_path
+        USER: "han"
+      }
+    }
+
+    # provisioner "shell" {
+    #   scripts = ["./scripts/setup-file-system.sh"]
+    #   env = {
+    #     EBS_DEVICE_PATH: var.ebs_device_name
+    #     FS_MOUNT_PATH: var.fs_mount_path
+    #   }
+    # }
+
+    provisioner "shell" {
+      scripts = ["./scripts/install-postgres.sh"]
+      env = {
         POSTGRES_SCHEMA_PATH: var.postgres_schema_dest_path
         POSTGRES_PASSWORD_PATH: var.postgres_password_dest_path
+        FS_MOUNT_PATH: var.fs_mount_path
+        USER: "han"
       }
+    }
+
+    provisioner "shell" {
+      scripts = ["./scripts/install-redis.sh"]
+    }
+
+    provisioner "shell" {
+      scripts = ["./scripts/install-nginx.sh"]
+      env = {
+        FS_MOUNT_PATH: var.fs_mount_path
+        USER: "han",
+        DOMAIN: "api.urlshortener.yaphc.com"
+      }
+    }
+
+    provisioner "shell" {
+      scripts = ["./scripts/install-docker.sh"]
+      env = {
+        USER: "han"
+      }
+    }
+
+    provisioner "shell" {
+      inline = [
+        "sudo file -s ${var.ebs_device_name}",
+        "sudo lsblk -f",
+        "df -h"
+      ]
     }
 }
