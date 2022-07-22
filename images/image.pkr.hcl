@@ -95,14 +95,6 @@ build {
       }
     }
 
-    # provisioner "shell" {
-    #   scripts = ["./scripts/setup-file-system.sh"]
-    #   env = {
-    #     EBS_DEVICE_PATH: var.ebs_device_name
-    #     FS_MOUNT_PATH: var.fs_mount_path
-    #   }
-    # }
-
     provisioner "shell" {
       scripts = ["./scripts/install-postgres.sh"]
       env = {

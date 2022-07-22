@@ -1,14 +1,14 @@
 - hosts: URL_shortener
   name: Configure SSL for nginx using acme
-  remote_user: "{{ user }}"
+  remote_user: "{{ USER }}"
   gather_facts: no
   vars_files:
     - ./vars.yml
   tasks:
     - name: Set variables
       set_fact:
-        ssl_cert_file_path: /etc/ssl/{{ domain }}/certificate.crt
-        ssl_key_file_path: /etc/ssl/{{ domain }}/private.key
+        SSL_CERT_FILE_PATH: /etc/ssl/{{ DOMAIN }}/certificate.crt
+        SSL_KEY_FILE_PATH: /etc/ssl/{{ DOMAIN }}/private.key
     - name: Install SSL cert
       args:
         executable: /bin/bash
@@ -22,14 +22,14 @@
       shell: |
         export DEBIAN_FRONTEND=noninteractive
 
-        mkdir -p /etc/ssl/{{ domain }}
+        mkdir -p /etc/ssl/{{ DOMAIN }}
 
         apt-get -y install socat
-        curl https://get.acme.sh | sh -s email={{ admin_email }}
+        curl https://get.acme.sh | sh -s email={{ ADMIN_EMAIL }}
         
-        ~/.acme.sh/acme.sh --issue -d {{ domain }} --nginx
-        ~/.acme.sh/acme.sh --install-cert -d {{ domain }} --key-file {{ ssl_key_file_path }} \
-        --fullchain-file {{ ssl_cert_file_path }} --reloadcmd "sudo systemctl reload nginx"
+        ~/.acme.sh/acme.sh --issue -d {{ DOMAIN }} --nginx
+        ~/.acme.sh/acme.sh --install-cert -d {{ DOMAIN }} --key-file {{ SSL_KEY_FILE_PATH }} \
+        --fullchain-file {{ SSL_CERT_FILE_PATH }} --reloadcmd "sudo systemctl reload nginx"
 
         # Run cron to renew certs to verify result
         ~/.acme.sh/acme.sh --cron
@@ -38,7 +38,8 @@
     - name: Update nginx config
       register: update_nginx_config
       shell: |
-        cat <<EOF | sudo tee /etc/nginx/sites-available/{{ domain }} > /dev/null
+        sudo mkdir -p {{ FS_MOUNT_PATH }}/nginx
+        cat <<EOF | sudo tee /etc/nginx/sites-available/{{ DOMAIN }} > /dev/null
         upstream url_shortener_backend {
           server localhost:3000;
         }
@@ -47,7 +48,7 @@
           listen 80;
           listen [::]:80;
 
-          server_name {{ domain }};
+          server_name {{ DOMAIN }};
 
           return 301 \$host\$request_uri;
         }
@@ -55,20 +56,24 @@
         server {
           listen 443 ssl;
 
-          ssl_certificate      {{ ssl_cert_file_path }};
-          ssl_certificate_key  {{ ssl_key_file_path }};
+          ssl_certificate      {{ SSL_CERT_FILE_PATH }};
+          ssl_certificate_key  {{ SSL_KEY_FILE_PATH }};
 
-          server_name {{ domain }};
+          server_name {{ DOMAIN }};
+          access_log {{ FS_MOUNT_PATH }}/nginx/access.log;
+          error_log {{ FS_MOUNT_PATH }}/nginx/error.log;
 
           location / {
             proxy_pass http://url_shortener_backend;
             proxy_set_header X-Real-IP \$remote_addr;
-            proxy_set_header Host \$host;
+            proxy_set_header X-Forwarded-Host \$host;
             proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwared-Proto \$scheme;
           }
         }
         EOF
-        sudo ln -sf /etc/nginx/sites-available/{{ domain }} /etc/nginx/sites-enabled/
+
+        sudo ln -sf /etc/nginx/sites-available/{{ DOMAIN }} /etc/nginx/sites-enabled/
         sudo nginx -t
         sudo systemctl reload nginx
     - debug: var=update_nginx_config.stdout_lines
