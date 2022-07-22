@@ -1,4 +1,4 @@
-USER="han"
+#!/bin/bash
 
 # Setup sudo to allow no-password sudo for "admin" group and adding "han" user
 sudo groupadd -r admin
@@ -18,3 +18,6 @@ sudo usermod --shell /bin/bash $USER
 
 # open ssh port
 sudo ufw allow OpenSSH
+
+# Set vim as default editor
+sudo update-alternatives --set editor /usr/bin/vim.basic

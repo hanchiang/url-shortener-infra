@@ -10,22 +10,20 @@ variable "region"{
   description = "The region Terraform deploys your instance"
   default = "us-east-1"
 }
-variable "ec2_ami" {
-  description = "AMI of the EC2 to be provisioned"
-  default = "ami-0ea7da9bb71c4cb62"
-}
+
 variable "ec2_instance_type" {
   description = "Instance type"
   default = "t2.micro"
 }
-variable "route53_zone_id" {
-  description = "Route53 zone id"
-  default = "Z036374065L40GHHCTH5"
+
+variable "ec2_az" {
+  description = "Availability zone"
+  default = "us-east-1a"
 }
+
 variable "ssh_private_key_path" {
   description = "Private SSH key for EC2"
   default = "/Users/hanchiang/.ssh/url_shortener_rsa"
-  sensitive = true
 }
 
 variable "ssh_public_key_path" {
@@ -35,5 +33,26 @@ variable "ssh_public_key_path" {
 
 variable "ssh_user" {
   default = "han"
-  sensitive = true
 }
+
+variable "url_shortener_ebs" {
+  default = "vol-032cdd105723e4765"
+}
+
+data "aws_ami" "ec2_ami" {
+  name_regex  = "^url_shortener$"
+  most_recent = true
+  owners      = ["self"]
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+

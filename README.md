@@ -33,6 +33,8 @@ EC2 and URL shortener will run from:
 * 2am UTC - 4am UTC, 6am UTC - 3pm UTC on weekends
 
 ## TODO:
+* Replace shell provisioner with ansible provisioner in packer, move configurations to a separate ansible playbook to be run after EC2 is created
+* Use ansible roles to define configurations
 * IAM user and policies for system admin
 * container image scan
 * Collect metric

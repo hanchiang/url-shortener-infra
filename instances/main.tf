@@ -33,6 +33,7 @@ resource "aws_internet_gateway" "igw" {
 resource "aws_subnet" "subnet_public" {
   vpc_id     = aws_vpc.vpc.id
   cidr_block = var.cidr_subnet
+  availability_zone = var.ec2_az
 }
 
 resource "aws_route_table" "rtb_public" {
@@ -82,15 +83,38 @@ resource "aws_security_group" "sg_22_80_443" {
   }
 }
 
+resource "aws_ebs_snapshot" "url_shortener_ebs_snapshot" {
+  # https://github.com/hashicorp/terraform/issues/24527
+  # ebs_block_device is a set, not a list
+  volume_id = var.url_shortener_ebs
+
+  tags = {
+    Name = "URL_shortener"
+  }
+}
+
+resource "aws_volume_attachment" "data_attachment" {
+  device_name = "/dev/xvdf"
+  volume_id   = var.url_shortener_ebs
+  instance_id = aws_instance.web.id
+}
+
 resource "aws_instance" "web" {
-  ami                         = var.ec2_ami
+  ami                         = data.aws_ami.ec2_ami.id
   instance_type               = var.ec2_instance_type
   subnet_id                   = aws_subnet.subnet_public.id
   vpc_security_group_ids      = [aws_security_group.sg_22_80_443.id]
+  availability_zone = var.ec2_az
   associate_public_ip_address = true
 
   root_block_device {
-    delete_on_termination = false
+    delete_on_termination = true
+    volume_size = 8
+    volume_type = "gp2"
+
+    tags = {
+      Name = "URL_shortener"
+    }
   }
 
   # Wait for EC2 to be ready
@@ -125,3 +149,8 @@ output "ebs_root_device_id" {
 output "ebs_root_device_name" {
   value = aws_instance.web.root_block_device.0.device_name
 }
+
+output "aws_ebs_snapshot" {
+  value = aws_ebs_snapshot.url_shortener_ebs_snapshot.id
+}
+

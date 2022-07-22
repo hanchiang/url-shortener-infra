@@ -230,8 +230,11 @@ start_ec2
 ./route53/update-ec2-route53.sh $DOMAIN "UPSERT"
 wait_for_dns_propagation $DOMAIN $instance_ip_address
 
-# Configure let's encrypt for nginx
-../ansible/nginx-https.sh $DOMAIN $SSH_USER $SSH_PRIVATE_KEY_PATH
+# Configure and mount EBS volume, copy postgres data over 
+../ansible/setup-file-system.sh $SSH_USER $SSH_PRIVATE_KEY_PATH
+
+# Configure ssl for nginx
+../ansible/nginx-https.sh $SSH_USER $SSH_PRIVATE_KEY_PATH
 
 # Rerun deploy job
 jobs_url=$(get_latest_github_workflow | tail -n 1)
