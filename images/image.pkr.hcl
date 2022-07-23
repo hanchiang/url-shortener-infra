@@ -115,6 +115,7 @@ build {
         FS_MOUNT_PATH: var.fs_mount_path
         USER: "han",
         DOMAIN: "api.urlshortener.yaphc.com"
+        URL_REDIRECT_DOMAIN: "go.yaphc.com"
       }
     }
 

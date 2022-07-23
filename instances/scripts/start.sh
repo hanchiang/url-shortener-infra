@@ -8,20 +8,14 @@ source ./helper/ec2-helper.sh
 source ./helper/wait_for_dns_propagation.sh
 source ./helper/timer.sh
 
-DOMAIN=$1
-GITHUB_TOKEN=$2
-SSH_USER=$3
-SSH_PRIVATE_KEY_PATH=$4
+GITHUB_TOKEN=$1
+SSH_USER=$2
+SSH_PRIVATE_KEY_PATH=$3
 
 usage () {
-    echo "Invalid $1. usage: <path/to/script> <domain> <github token> <ssh user> <ssh private key path>"
+    echo "Invalid $1. usage: <path/to/script> <github token> <ssh user> <ssh private key path>"
     exit 1
 }
-
-if [ -z "$DOMAIN"  ];
-then
-    usage "domain"
-fi
 
 if [ -z "$GITHUB_TOKEN"  ];
 then
@@ -74,13 +68,14 @@ wait_for_ec2_stop () {
             if [ "$instance_state" == "stopped" ]
             then
                 echo "Instance $instance_id has stopped"
+                printf "\n"
                 return 0
             fi
             time_elapsed=$(get_time_elapsed $start | tail -n 1)
         done
-
         echo "Instance $instance_id did not stop after $seconds_to_wait seconds"
     fi
+    printf "\n"
 }
 
 
@@ -93,6 +88,7 @@ start_ec2() {
     if [ "$instance_state" == "running" ]
     then
         echo "Instance $instance_id is already running. Ip address $instance_ip_address"
+        printf "\n"
         return 0
     fi
 
@@ -117,11 +113,13 @@ start_ec2() {
         if [ "$instance_state" == "running" ]
         then
             echo "Instance $instance_id is running. Ip address $instance_ip_address"
+            printf "\n"
             return 0
         fi
         time_elapsed=$(get_time_elapsed $start | tail -n 1)
     done
-    echo "Instance $instance_id is not runnign after $seconds_to_wait seconds"
+    echo "Instance $instance_id is not running after $seconds_to_wait seconds"
+    printf "\n"
 }
 
 #### Trigger github action deployment
@@ -181,14 +179,15 @@ rerun_job () {
     local job_id
     job_id=$1
 
-    echo -e "Re-run job $job_id"
+    echo "Re-run job $job_id"
     curl -X POST  -H "Accept: application/vnd.github+json" -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/hanchiang/url-shortener-backend/actions/jobs/$job_id/rerun
+    printf "\n"
 }
 
 wait_for_deploy_success () {
     jobs_url=$1
 
-    local seconds_to_wait=120
+    local seconds_to_wait=180
 
     start=$(date +%s)
     time_elapsed=$(get_time_elapsed $start | tail -n 1)
@@ -216,9 +215,11 @@ wait_for_deploy_success () {
             time_elapsed=$(get_time_elapsed $start | tail -n 1)
         else
             echo "URL shortener deployment is successful!"
+            printf "\n"
             return 0
         fi
     done
+    printf "\n"
     return 1
 }
 
@@ -227,8 +228,13 @@ wait_for_ec2_stop
 start_ec2
 
 # Update route53 record
-./route53/update-ec2-route53.sh $DOMAIN "UPSERT"
-wait_for_dns_propagation $DOMAIN $instance_ip_address
+DOMAINS=("api.urlshortener.yaphc.com" "go.yaphc.com")
+for domain in "${DOMAINS[@]}"
+do
+    ./route53/update-ec2-route53.sh $domain "UPSERT"
+    wait_for_dns_propagation $domain $instance_ip_address
+    printf "\n"
+done
 
 # Configure and mount EBS volume, copy postgres data over 
 ../ansible/setup-file-system.sh $SSH_USER $SSH_PRIVATE_KEY_PATH

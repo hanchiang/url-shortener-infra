@@ -5,10 +5,22 @@
   vars_files:
     - ./vars.yml
   tasks:
-    - name: Set variables
-      set_fact:
-        SSL_CERT_FILE_PATH: /etc/ssl/{{ DOMAIN }}/certificate.crt
-        SSL_KEY_FILE_PATH: /etc/ssl/{{ DOMAIN }}/private.key
+    - name: Install required packages
+      args:
+        executable: /bin/bash
+      become: yes
+      become_method: su
+      become_user: root
+      become_exe: "sudo su -"
+      register: install_required_packages
+      shell: |
+        export DEBIAN_FRONTEND=noninteractive
+
+        apt-get -y install socat
+        curl https://get.acme.sh | sh -s email={{ ADMIN_EMAIL }}
+    - debug: var=install_required_packages.stdout_lines
+    - debug: var=install_required_packages.stderr_lines
+
     - name: Install SSL cert
       args:
         executable: /bin/bash
@@ -18,27 +30,39 @@
       become_user: root
       become_exe: "sudo su -"
       async: 300
-      poll: 10
+      poll: 15
+      loop: "{{ DOMAINS }}"
       shell: |
-        export DEBIAN_FRONTEND=noninteractive
+        mkdir -p /etc/ssl/{{ item }}
 
-        mkdir -p /etc/ssl/{{ DOMAIN }}
+        SSL_CERT_FILE_PATH="/etc/ssl/{{ item }}/certificate.crt"
+        SSL_KEY_FILE_PATH="/etc/ssl/{{ item }}/private.key"
 
-        apt-get -y install socat
-        curl https://get.acme.sh | sh -s email={{ ADMIN_EMAIL }}
-        
-        ~/.acme.sh/acme.sh --issue -d {{ DOMAIN }} --nginx
-        ~/.acme.sh/acme.sh --install-cert -d {{ DOMAIN }} --key-file {{ SSL_KEY_FILE_PATH }} \
-        --fullchain-file {{ SSL_CERT_FILE_PATH }} --reloadcmd "sudo systemctl reload nginx"
+        if [ -f "$SSL_CERT_FILE_PATH" ] && [ -f "SSL_KEY_FILE_PATH" ]
+        then
+          echo "SSL certs already exist for {{ item }}"
+        else
+          ~/.acme.sh/acme.sh --issue -d {{ item }} --nginx
+          ~/.acme.sh/acme.sh --install-cert -d {{ item }} --key-file $SSL_KEY_FILE_PATH \
+          --fullchain-file $SSL_CERT_FILE_PATH --reloadcmd "sudo systemctl reload nginx"
 
-        # Run cron to renew certs to verify result
-        ~/.acme.sh/acme.sh --cron
-    - debug: var=install_ssl.stdout_lines
-    - debug: var=install_ssl.stderr_lines
+          # Run cron to renew certs to verify result
+          ~/.acme.sh/acme.sh --cron
+        fi
+    - debug: var="{{ item.stdout_lines }}"
+      loop: "{{ install_ssl.results }}"
+    - debug: var="{{ item.stderr_lines }}"
+      loop: "{{ install_ssl.results }}"
+
     - name: Update nginx config
+      args:
+        executable: /bin/bash
       register: update_nginx_config
       shell: |
-        sudo mkdir -p {{ FS_MOUNT_PATH }}/nginx
+        NGINX_DIRECTORY="{{ FS_MOUNT_PATH }}/nginx"
+        sudo mkdir -p $NGINX_DIRECTORY/{{ DOMAIN }}
+        sudo mkdir -p $NGINX_DIRECTORY/{{ URL_REDIRECT_DOMAIN }}
+
         cat <<EOF | sudo tee /etc/nginx/sites-available/{{ DOMAIN }} > /dev/null
         upstream url_shortener_backend {
           server localhost:3000;
@@ -50,18 +74,54 @@
 
           server_name {{ DOMAIN }};
 
-          return 301 \$host\$request_uri;
+          return 301 https://\$host\$request_uri;
         }
 
         server {
           listen 443 ssl;
 
-          ssl_certificate      {{ SSL_CERT_FILE_PATH }};
-          ssl_certificate_key  {{ SSL_KEY_FILE_PATH }};
+          ssl_certificate      /etc/ssl/{{ DOMAIN }}/certificate.crt;
+          ssl_certificate_key  /etc/ssl/{{ DOMAIN }}/private.key;
+          client_max_body_size 1m;
 
           server_name {{ DOMAIN }};
-          access_log {{ FS_MOUNT_PATH }}/nginx/access.log;
-          error_log {{ FS_MOUNT_PATH }}/nginx/error.log;
+          access_log $NGINX_DIRECTORY/{{ DOMAIN }}/access.log;
+          error_log $NGINX_DIRECTORY/{{ DOMAIN }}/error.log;
+
+          location = /favicon.ico {
+            return 204;
+            access_log     off;
+            log_not_found  off;
+          }
+
+          location / {
+            proxy_pass http://url_shortener_backend;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-Host \$host;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwared-Proto \$scheme;
+          }
+        }
+
+        server {
+          listen 80;
+          listen [::]:80;
+
+          server_name {{ URL_REDIRECT_DOMAIN }};
+
+          return 301 https://\$host\$request_uri;
+        }
+
+        server {
+          listen 443 ssl;
+
+          ssl_certificate      /etc/ssl/{{ URL_REDIRECT_DOMAIN }}/certificate.crt;
+          ssl_certificate_key  /etc/ssl/{{ URL_REDIRECT_DOMAIN }}/private.key;
+          client_max_body_size 1m;
+
+          server_name {{ URL_REDIRECT_DOMAIN }};
+          access_log $NGINX_DIRECTORY/{{ URL_REDIRECT_DOMAIN }}/access.log;
+          error_log $NGINX_DIRECTORY/{{ URL_REDIRECT_DOMAIN }}/error.log;
 
           location = /favicon.ico {
             return 204;
