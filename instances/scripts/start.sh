@@ -42,8 +42,6 @@ wait_for_ec2_stop () {
     instance_state=$(echo $instance_info | jq -r '.state')
     instance_id=$(echo $instance_info | jq -r .'id')
     
-    echo "Waiting for instance $instance_id to stop"
-    
     if [ "$instance_state" = "running" ] || [ "$instance_state" = "terminated" ] || [ "$instance_state" = "shutting-down" ]
     then
         echo "Instance cannot be started because it is either running, terminated or going to be terminated"

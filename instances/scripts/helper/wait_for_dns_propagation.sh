@@ -27,6 +27,7 @@ wait_for_dns_propagation () {
     while [ "$time_elapsed" -lt $seconds_to_wait ];
     do
         time_elapsed=$(get_time_elapsed $start | tail -n 1)
+        # pipe to cat to avoid error when grep returns no result
         nslookup_result=$(nslookup $domain | grep Address | cut -d ' ' -f 2 | grep "^[0-9]" | cat)
 
         if [ -z "$nslookup_result" ]
