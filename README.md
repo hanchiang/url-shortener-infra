@@ -5,7 +5,7 @@ This project is the infrastructure as code management for [URL shortener backend
 * `images/`: Packer files for building AMI
     * `scripts/`: Scripts to be run when provisioning AMI
 * `instances/`: Terraform files to provision EC2 in VPC
-    * `scripts/`: Scripts to automate start and stop of EC2, DNS, and deployment of [URL shortener backend](https://github.com/hanchiang/url-shortener-backend)
+    * `scripts/`: Scripts to automate(everything after step 2 of the workflow) start and stop of EC2, DNS, and deployment of [URL shortener backend](https://github.com/hanchiang/url-shortener-backend)
 
 
 # Workflow
@@ -21,11 +21,28 @@ cd into `instances/`
 Copy the AMI ID from packer build, update it in `variables.tf`
 Provision infra: `terraform apply`
 
-## 3. configure SSL for nginx**
-Make sure DNS is mapped for EC2 before proceeding.
 
+**Make sure DNS is mapped for EC2 before proceeding.**
+Everything from here is handled in `instances/scripts/start.sh`
+
+## 3. Attach EBS volume and copy postgres data over
+Store postgres data in a separate EBS volume so that it survives a new image build/EC2 termination
+`ansible/setup-file-system.sh <ssh user> <ssh private key path>`
+
+## 4. configure SSL for nginx**
 This needs to be done after EC2 is provisioned and its IP addresss is set in route 53
 `ansible/nginx-https.sh <ssh user> <ssh private key path>`
+
+## 5. Deploy application
+Rerun the latest deploy job in github action
+
+## Diagram
+**Traffic flow**
+![](diagrams/traffic-flow.drawio.png)
+
+**Deployment pipeline**
+![](diagrams/deployment-pipeline.drawio.png)
+
 
 # Operational hours
 EC2 and URL shortener will run from:
