@@ -32,6 +32,7 @@ jobs:
     if: ${{ failure() }}
     env:
       DOMAIN: ${{ secrets.DOMAIN }}
+      URL_REDIRECT_DOMAIN: ${{ secrets.URL_REDIRECT_DOMAIN }}
       SSH_USER: ${{ secrets.SSH_USER }}
       ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
@@ -87,6 +88,10 @@ jobs:
           cat << EOF > ./instances/ansible/vars.yml
           USER: $SSH_USER
           DOMAIN: $DOMAIN
+          URL_REDIRECT_DOMAIN: $URL_REDIRECT_DOMAIN
+          DOMAINS:
+            - $DOMAIN
+            - $URL_REDIRECT_DOMAIN
           ADMIN_EMAIL: $ADMIN_EMAIL
           FS_MOUNT_PATH: $FS_MOUNT_PATH
           EBS_DEVICE_PATH: $EBS_DEVICE_PATH

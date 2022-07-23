@@ -71,6 +71,21 @@ server {
     proxy_set_header X-Forwared-Proto \$scheme;
   }
 }
+
+server {
+  listen 80;
+  listen [::]:80;
+
+  server_name $URL_REDIRECT_DOMAIN;
+
+  location / {
+    proxy_pass http://url_shortener_backend;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-Host \$host;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwared-Proto \$scheme;
+  }
+}
 EOF
 
 sudo ln -sf /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/

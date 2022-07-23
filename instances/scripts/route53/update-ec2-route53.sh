@@ -29,16 +29,18 @@ then
     instance_ip_address=$(echo $instance_info | jq -r '.ip_address')
     instance_state=$(echo $instance_info | jq -r '.state')
     instance_id=$(echo $instance_info | jq -r .'id')
-
-    echo "Updating route53 record for instance $instance_id, ip $instance_ip_address, with action $ACTION"
     ip_addresses=($instance_ip_address)
 elif [ "$ACTION" == "DELETE" ]
 then
-    command=$(echo "aws route53 list-resource-record-sets --hosted-zone-id Z036374065L40GHHCTH5 | jq '.ResourceRecordSets[] | select (.Name | contains(\"<DOMAIN>\")) | select(.Type == \"A\")'" | sed "s~<DOMAIN>~$DOMAIN~")
+    command=$(echo "aws route53 list-resource-record-sets --hosted-zone-id Z036374065L40GHHCTH5 | jq '.ResourceRecordSets[] | select (.Name | contains(\"$DOMAIN\")) | select(.Type == \"A\")'")
     record=$(eval $command)
     ip_addresses=($(echo $record | jq -r '.ResourceRecords[].Value'))
-    echo "ip addresses: $ip_addresses"
+else
+    echo "Unrecognised action $ACTION"
+    exit 1
 fi
+
+echo "Updating route53 record for instance $instance_id, ip addresses $ip_addresses, action $ACTION, domain $DOMAIN"
 
 #### Update route53 record set
 for ip in "${ip_addresses[@]}"
