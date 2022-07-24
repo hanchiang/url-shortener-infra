@@ -3,9 +3,12 @@ This project is the infrastructure as code management for [URL shortener backend
 
 # Structure
 * `images/`: Packer files for building AMI
+    * `image.pkr.hcl`: Main packer script
     * `scripts/`: Scripts to be run when provisioning AMI
 * `instances/`: Terraform files to provision EC2 in VPC
-    * `scripts/`: Scripts to automate(everything after step 2 of the workflow) start and stop of EC2, DNS, and deployment of [URL shortener backend](https://github.com/hanchiang/url-shortener-backend)
+    * `main.tf`: Main terraform script
+    * `ansible/`: Ansible scripts to run post-provisioning tasks such as mounting EBS volume, set up file system, copy postgres data, setup SSL for nginx 
+    * `scripts/`: Scripts to automate(everything after step 2 of the workflow) start and stop of EC2, DNS, and deployment of [URL shortener backend](https://github.com/hanchiang/url-shortener-backend). Calls ansible scripts
 
 
 # Workflow
