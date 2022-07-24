@@ -209,7 +209,7 @@ wait_for_deploy_success () {
             echo "Latest deploy job status: $job_conclusion"
             echo "Waiting for deploy to be successful"
             echo "job url: $job_url"
-            sleep 10
+            sleep 15
             time_elapsed=$(get_time_elapsed $start | tail -n 1)
         else
             echo "URL shortener deployment is successful!"
@@ -234,8 +234,11 @@ do
     printf "\n"
 done
 
-# Configure and mount EBS volume, copy postgres data over 
+# Configure and mount EBS volume
 ../ansible/setup-file-system.sh $SSH_USER $SSH_PRIVATE_KEY_PATH
+
+# Copy postgres data to volume
+../ansible/copy-postgres-data.sh $SSH_USER $SSH_PRIVATE_KEY_PATH
 
 # Configure ssl for nginx
 ../ansible/nginx-https.sh $SSH_USER $SSH_PRIVATE_KEY_PATH
