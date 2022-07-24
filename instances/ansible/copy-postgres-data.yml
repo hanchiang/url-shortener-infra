@@ -58,7 +58,6 @@
         log_min_duration_sample = 100
         log_statement_sample_rate = 0.5
         log_transaction_sample_rate = 0.5
-        log_startup_progress_interval = 10s
 
         # - What to Log -
         log_duration = on
@@ -88,7 +87,6 @@
         fi
 
         sudo systemctl daemon-reload
-        sudo systemctl enable postgresql.service
         sudo systemctl restart postgresql.service
     - debug: var=postgres_systemd.stdout_lines
     - debug: var=postgres_systemd.stderr_lines
