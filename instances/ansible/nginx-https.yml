@@ -38,20 +38,18 @@
         SSL_CERT_FILE_PATH="/etc/ssl/{{ item }}/certificate.crt"
         SSL_KEY_FILE_PATH="/etc/ssl/{{ item }}/private.key"
 
-        if [ -f "$SSL_CERT_FILE_PATH" ] && [ -f "SSL_KEY_FILE_PATH" ]
+        if [ -f "$SSL_CERT_FILE_PATH" ] && [ -f "$SSL_KEY_FILE_PATH" ]
         then
           echo "SSL certs already exist for {{ item }}"
         else
           ~/.acme.sh/acme.sh --issue -d {{ item }} --nginx
           ~/.acme.sh/acme.sh --install-cert -d {{ item }} --key-file $SSL_KEY_FILE_PATH \
           --fullchain-file $SSL_CERT_FILE_PATH --reloadcmd "sudo systemctl reload nginx"
-
-          # Run cron to renew certs to verify result
-          ~/.acme.sh/acme.sh --cron
         fi
-    - debug: var="{{ item.stdout_lines }}"
-      loop: "{{ install_ssl.results }}"
-    - debug: var="{{ item.stderr_lines }}"
+        # Run cron to renew certs to verify result
+        ~/.acme.sh/acme.sh --cron
+    - debug:
+        var: item.stdout_lines
       loop: "{{ install_ssl.results }}"
 
     - name: Update nginx config
@@ -77,16 +75,20 @@
           return 301 https://\$host\$request_uri;
         }
 
+        limit_req_zone \$binary_remote_addr zone=url_shorten_limit:10m rate=3r/s;
+
         server {
           listen 443 ssl;
 
           ssl_certificate      /etc/ssl/{{ DOMAIN }}/certificate.crt;
           ssl_certificate_key  /etc/ssl/{{ DOMAIN }}/private.key;
-          client_max_body_size 1m;
 
           server_name {{ DOMAIN }};
           access_log $NGINX_DIRECTORY/{{ DOMAIN }}/access.log;
           error_log $NGINX_DIRECTORY/{{ DOMAIN }}/error.log;
+
+          server_tokens off;
+          client_max_body_size 1m;
 
           location = /favicon.ico {
             return 204;
@@ -95,6 +97,8 @@
           }
 
           location / {
+            limit_req zone=url_shorten_limit burst=6 delay=2;
+            limit_req_status 444;
             proxy_pass http://url_shortener_backend;
             proxy_set_header X-Real-IP \$remote_addr;
             proxy_set_header X-Forwarded-Host \$host;
@@ -112,16 +116,20 @@
           return 301 https://\$host\$request_uri;
         }
 
+        limit_req_zone \$binary_remote_addr zone=url_redirect_limit:10m rate=20r/s;
+
         server {
           listen 443 ssl;
 
           ssl_certificate      /etc/ssl/{{ URL_REDIRECT_DOMAIN }}/certificate.crt;
           ssl_certificate_key  /etc/ssl/{{ URL_REDIRECT_DOMAIN }}/private.key;
-          client_max_body_size 1m;
 
           server_name {{ URL_REDIRECT_DOMAIN }};
           access_log $NGINX_DIRECTORY/{{ URL_REDIRECT_DOMAIN }}/access.log;
           error_log $NGINX_DIRECTORY/{{ URL_REDIRECT_DOMAIN }}/error.log;
+
+          server_tokens off;
+          client_max_body_size 1m;
 
           location = /favicon.ico {
             return 204;
@@ -129,7 +137,10 @@
             log_not_found  off;
           }
 
+          
           location / {
+            limit_req zone=url_redirect_limit burst=40 nodelay;
+            limit_req_status 444;
             proxy_pass http://url_shortener_backend;
             proxy_set_header X-Real-IP \$remote_addr;
             proxy_set_header X-Forwarded-Host \$host;

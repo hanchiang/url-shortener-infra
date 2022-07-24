@@ -13,16 +13,6 @@ variable "ssh_public_key_dest_path" {
   default = "/tmp/url_shortener_rsa.pub"
 }
 
-variable "postgres_schema_src_path" {
-  type = string
-  default = "/Users/hanchiang/Documents/CODING-PROJECTS/NODE/url-shortener/url-shortener-infra/images/scripts/db/postgres-schema.sql"
-}
-
-variable "postgres_schema_dest_path" {
-  type = string
-  default = "/tmp/postgres-schema.sql"
-}
-
 variable "postgres_password_src_path" {
   type = string
   default = "/Users/hanchiang/Documents/CODING-PROJECTS/NODE/url-shortener/url-shortener-infra/secrets/postgres/user_password.txt"
@@ -78,11 +68,6 @@ build {
     }
 
     provisioner "file" {
-      source = var.postgres_schema_src_path
-      destination = var.postgres_schema_dest_path
-    }
-
-    provisioner "file" {
       source = var.postgres_password_src_path
       destination = var.postgres_password_dest_path
     }
@@ -98,7 +83,6 @@ build {
     provisioner "shell" {
       scripts = ["./scripts/install-postgres.sh"]
       env = {
-        POSTGRES_SCHEMA_PATH: var.postgres_schema_dest_path
         POSTGRES_PASSWORD_PATH: var.postgres_password_dest_path
         FS_MOUNT_PATH: var.fs_mount_path
         USER: "han"

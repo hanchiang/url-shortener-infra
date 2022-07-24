@@ -22,8 +22,7 @@ Copy the AMI ID from packer build, update it in `variables.tf`
 Provision infra: `terraform apply`
 
 
-**Make sure DNS is mapped for EC2 before proceeding.**
-Everything from here is handled in `instances/scripts/start.sh`
+Everything from here onwards is handled in `instances/scripts/start.sh`
 
 ## 3. Attach EBS volume and copy postgres data over
 Store postgres data in a separate EBS volume so that it survives a new image build/EC2 termination
@@ -56,3 +55,5 @@ EC2 and URL shortener will run from:
 * container image scan
 * Collect metric
 * Centralised log collection
+* Nginx: Extract common location config into a file
+* Use terraform vault to store secrets
