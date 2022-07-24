@@ -25,9 +25,6 @@ sudo -u postgres createdb $USER
 DB_NAME="url_shortener"
 sudo -u postgres createdb $DB_NAME
 
-sudo -u $USER psql -d $DB_NAME -f $POSTGRES_SCHEMA_PATH
-sudo rm $POSTGRES_SCHEMA_PATH
-
 # Allow password authentication
 TAB="$(printf '\t')"
 cat << EOF | sudo tee -a /etc/postgresql/*/main/pg_hba.conf > /dev/null
