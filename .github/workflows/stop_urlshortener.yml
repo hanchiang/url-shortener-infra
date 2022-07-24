@@ -1,10 +1,9 @@
 name: Stop URL shortener
 on:
   schedule:
-    # Run a few times for each schedule, just in case there some transient errors occurs during the run
     - cron: '50 13 * * 1-5' # weekdays
-    - cron: '50 3 * * 0,6' # weekends, 0 = sunday
     - cron: '50 14 * * *'  # weekends, 0 = sunday
+    
 jobs:
   health_check:
     runs-on: ubuntu-latest
