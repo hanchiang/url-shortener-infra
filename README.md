@@ -48,7 +48,7 @@ Rerun the latest deploy job in github action
 
 # Operational hours
 EC2 and URL shortener will run from:
-* 12pm UTC - 2pm UTC on weekdays
+* 11am UTC - 4pm UTC on weekdays
 * 2am UTC - 2pm UTC on weekends
 
 ## TODO:

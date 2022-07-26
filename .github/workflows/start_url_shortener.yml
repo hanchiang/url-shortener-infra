@@ -1,7 +1,7 @@
 name: Start URL shortener
 on:
   schedule:
-    - cron: '50 11 * * 1-5' # weekdays
+    - cron: '50 10 * * 1-5' # weekdays
     - cron: '50 1 * * 0,6' # weekends, 0 = sunday
 jobs:
   health_check:
@@ -131,7 +131,7 @@ jobs:
   notify_unsuccessful:
     runs-on: ubuntu-latest
     needs: [start_ec2_and_deploy]
-    if: ${{ needs.start_ec2_and_deploy == 'failure' }}
+    if: ${{ needs.start_ec2_and_deploy.result == 'failure' }}
     steps:
       - name: Send slack notification unsuccessful run
         env:
@@ -143,6 +143,7 @@ jobs:
   notify_successful:
     runs-on: ubuntu-latest
     needs: [start_ec2_and_deploy]
+    if: ${{ needs.start_ec2_and_deploy.result == 'success' }}
     steps:
       - name: Send slack notification successful run
         env:
