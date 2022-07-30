@@ -1,8 +1,8 @@
 name: Stop URL shortener
 on:
   schedule:
-    - cron: '55 15 * * 1-5' # weekdays
-    - cron: '55 14 * * *'  # weekends, 0 = sunday
+    - cron: '56 14 * * 1-5' # weekdays
+    - cron: '56 14 * * *'  # weekends, 0 = sunday
     
 jobs:
   health_check:

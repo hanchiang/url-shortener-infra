@@ -48,8 +48,8 @@ Rerun the latest deploy job in github action
 
 # Operational hours
 EC2 and URL shortener will run from:
-* 11am UTC - 4pm UTC on weekdays
-* 2am UTC - 2pm UTC on weekends
+* 5am UTC - 3pm UTC on weekdays
+* 2am UTC - 3pm UTC on weekends
 
 ## TODO:
 * Replace shell provisioner with ansible provisioner in packer, move configurations to a separate ansible playbook to be run after EC2 is created

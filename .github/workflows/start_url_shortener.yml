@@ -1,7 +1,7 @@
 name: Start URL shortener
 on:
   schedule:
-    - cron: '50 10 * * 1-5' # weekdays
+    - cron: '50 4 * * 1-5' # weekdays
     - cron: '50 1 * * 0,6' # weekends, 0 = sunday
 jobs:
   health_check:
