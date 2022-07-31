@@ -18,16 +18,26 @@ on:
 jobs:
   health_check:
     runs-on: ubuntu-latest
+    continue-on-error: true
+    outputs:
+      health_check_outcome: ${{ steps.health_check.outputs.outcome }}
     env:
       URL_SHORTENER_HOST_NAME: ${{ secrets.URL_SHORTENER_HOST_NAME }}
     steps:
       - name: Check if EC2 is already stopped
+        id: health_check
         run: |
-          curl $URL_SHORTENER_HOST_NAME
+          health_check=$(curl $URL_SHORTENER_HOST_NAME || true)
+          if [ -z "$health_check" ]
+          then
+            echo "::set-output name=outcome::failure"
+          else
+            echo "::set-output name=outcome::success"
+          fi
   notify_ec2_already_stopped:
     runs-on: ubuntu-latest
     needs: [health_check]
-    if: ${{ failure() }}
+    if: ${{ needs.health_check.outputs.health_check_outcome == 'failure' }}
     steps:
       - name: Send slack notification EC2 is already stopped
         env:
@@ -40,6 +50,7 @@ jobs:
   stop_ec2:
     runs-on: ubuntu-latest
     needs: [health_check]
+    if: ${{ needs.health_check.outputs.health_check_outcome == 'success' }}
     env:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       DOMAIN: ${{ secrets.DOMAIN }}
@@ -86,7 +97,7 @@ jobs:
   notify_successful_run:
     runs-on: ubuntu-latest
     needs: [stop_ec2]
-    if: ${{ needs.stop_ec2.result == 'success' }}
+    if: ${{ always() && needs.stop_ec2.result == 'success' }}
     steps:
       - name: Send slack notification successful run
         env:

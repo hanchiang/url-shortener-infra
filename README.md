@@ -1,4 +1,8 @@
 # Introduction
+![example workflow](https://github.com/hanchiang/url-shortener-infra/actions/workflows/health_check.yml/badge.svg)
+![example workflow](https://github.com/hanchiang/url-shortener-infra/actions/workflows/start_url_shortener.yml/badge.svg)
+![example workflow](https://github.com/hanchiang/url-shortener-infra/actions/workflows/stop_url_shortener.yml/badge.svg)
+
 This project is the infrastructure as code management for [URL shortener backend](https://github.com/hanchiang/url-shortener-backend) using AWS.
 
 # Structure
@@ -52,11 +56,11 @@ EC2 and URL shortener will run from:
 * 2am UTC - 3pm UTC on weekends
 
 ## TODO:
-* Replace shell provisioner with ansible provisioner in packer, move configurations to a separate ansible playbook to be run after EC2 is created
-* Use ansible roles to define configurations
+* Use ansible roles to define reusable configurations
+* Use terraform modules to define reusable configurations
 * IAM user and policies for system admin
 * container image scan
 * Collect metric
 * Centralised log collection
-* Nginx: Extract common location config into a file
 * Use terraform vault to store secrets
+* Nginx: Extract common location config into a file

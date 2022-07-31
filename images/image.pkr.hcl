@@ -23,11 +23,6 @@ variable "postgres_password_dest_path" {
   default = "/tmp/postgres-user-password.txt"
 }
 
-variable "ebs_device_name" {
-  type = string
-  default = "/dev/xvdf"
-}
-
 variable "fs_mount_path" {
   type = string
   default = "/mnt/data"
@@ -112,7 +107,6 @@ build {
 
     provisioner "shell" {
       inline = [
-        "sudo file -s ${var.ebs_device_name}",
         "sudo lsblk -f",
         "df -h"
       ]
