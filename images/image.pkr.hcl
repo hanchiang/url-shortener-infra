@@ -23,11 +23,6 @@ variable "postgres_password_dest_path" {
   default = "/tmp/postgres-user-password.txt"
 }
 
-variable "ebs_device_name" {
-  type = string
-  default = "/dev/xvdf"
-}
-
 variable "fs_mount_path" {
   type = string
   default = "/mnt/data"
@@ -37,7 +32,7 @@ variable "fs_mount_path" {
 # build blocks. A build block runs provisioners and post-processors on a
 # source.
 source "amazon-ebs" "url_shortener" {
-  ami_name      = "url_shortener"
+  ami_name      = "url_shortener_redis_7.0.4"
   instance_type = "t2.micro"
   region        = var.region
   force_deregister   = true
@@ -112,7 +107,6 @@ build {
 
     provisioner "shell" {
       inline = [
-        "sudo file -s ${var.ebs_device_name}",
         "sudo lsblk -f",
         "df -h"
       ]
