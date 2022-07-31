@@ -3,6 +3,17 @@ on:
   schedule:
     - cron: '56 14 * * 1-5' # weekdays
     - cron: '56 14 * * *'  # weekends, 0 = sunday
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: false
+        default: 'info' 
+        type: choice
+        options:
+        - info
+        - warning
+        - debug
     
 jobs:
   health_check:
