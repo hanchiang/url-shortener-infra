@@ -17,7 +17,7 @@ sudo tee -a /etc/redis/conf.d/redis.conf > /dev/null << EOF
 supervised systemd
 
 maxmemory 10mb
-maxmemory-policy allkeys-lru
+maxmemory-policy allkeys-lfu
 EOF
 
 sudo systemctl enable redis-server
