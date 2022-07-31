@@ -55,12 +55,17 @@ jobs:
           pwd
           ls -la
 
-          # Install ansible and required dependencies
-          sudo apt-get update
-          sudo apt-get -y install ansible
-          pip3 install --no-input boto3
+          # Install ansible and required dependencie          
+          # sudo apt-get update
+          # sudo apt-get -y install ansible python3-botocore python3-boto3
+          python3 -m pip install ansible boto3
+          
+          python3 --version
+          python3 -m pip -V
+          ansible --version
 
           # Ansible config
+          sudo mkdir -p /etc/ansible
           cat << EOF | sudo tee /etc/ansible/ansible.cfg > /dev/null
           # Since Ansible 2.12 (core):
           # To generate an example config file (a "disabled" one with all default settings, commented out):
@@ -154,7 +159,6 @@ jobs:
   notify_successful:
     runs-on: ubuntu-latest
     needs: [start_ec2_and_deploy]
-    if: ${{ needs.start_ec2_and_deploy.result == 'success' }}
     steps:
       - name: Send slack notification successful run
         env:

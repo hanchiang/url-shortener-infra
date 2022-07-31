@@ -86,7 +86,6 @@ jobs:
   notify_successful_run:
     runs-on: ubuntu-latest
     needs: [stop_ec2]
-    if: ${{ needs.stop_ec2.result == 'success' }}
     steps:
       - name: Send slack notification successful run
         env:
