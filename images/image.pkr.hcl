@@ -32,7 +32,7 @@ variable "fs_mount_path" {
 # build blocks. A build block runs provisioners and post-processors on a
 # source.
 source "amazon-ebs" "url_shortener" {
-  ami_name      = "url_shortener_redis_7.0.4"
+  ami_name      = "url_shortener"
   instance_type = "t2.micro"
   region        = var.region
   force_deregister   = true
