@@ -56,6 +56,8 @@ jobs:
       SSH_USER: ${{ secrets.SSH_USER }}
       ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
+      FS_MOUNT_PATH: ${{ secrets.FS_MOUNT_PATH }}
+      EBS_DEVICE_PATH: ${{ secrets.EBS_DEVICE_PATH }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up ansible
