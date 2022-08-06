@@ -19,5 +19,21 @@ sudo usermod --shell /bin/bash $USER
 # open ssh port
 sudo ufw allow OpenSSH
 
-# Set vim as default editor
+# Set vim as default editor, configurations
 sudo update-alternatives --set editor /usr/bin/vim.basic
+
+sudo touch /home/$USER/.vimrc
+cat <<EOF | sudo tee -a /home/$USER/.vimrc > /dev/null
+set number
+set expandtab
+set tabstop=2
+set shiftwidth=2
+EOF
+sudo chown $USER:$USER /home/$USER/.vimrc
+
+cat <<EOF | sudo tee -a /root/.vimrc > /dev/null
+set number
+set expandtab
+set tabstop=2
+set shiftwidth=2
+EOF
