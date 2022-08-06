@@ -45,11 +45,10 @@
           ~/.acme.sh/acme.sh --issue -d {{ item }} --nginx
           ~/.acme.sh/acme.sh --install-cert -d {{ item }} --key-file $SSL_KEY_FILE_PATH \
           --fullchain-file $SSL_CERT_FILE_PATH --reloadcmd "sudo systemctl reload nginx"
+          sleep 20
         fi
         # Run cron to renew certs to verify result
         ~/.acme.sh/acme.sh --cron
-
-        sleep 20
     - debug:
         var: item.stdout_lines
       loop: "{{ install_ssl.results }}"
