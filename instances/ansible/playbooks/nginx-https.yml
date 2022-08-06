@@ -48,6 +48,8 @@
         fi
         # Run cron to renew certs to verify result
         ~/.acme.sh/acme.sh --cron
+
+        sleep 20
     - debug:
         var: item.stdout_lines
       loop: "{{ install_ssl.results }}"
