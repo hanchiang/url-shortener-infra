@@ -96,6 +96,13 @@
             enabled: true
             data_source_names:
               - "postgresql://{{ POSTGRES_USER }}:{{ POSTGRES_PASSWORD }}@localhost:5432/{{ POSTGRES_DB }}?sslmode=disable"
+          redis_exporter:
+            enabled: true
+            redis_addr: "redis://localhost:6379"
+            relabel_configs:
+            - source_labels: [__address__]
+              target_label: instance
+              replacement: url_shortener_redis
         logs:
           positions_directory: /tmp/loki
           configs:
