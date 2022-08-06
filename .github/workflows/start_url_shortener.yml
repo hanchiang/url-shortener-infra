@@ -58,6 +58,14 @@ jobs:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       FS_MOUNT_PATH: ${{ secrets.FS_MOUNT_PATH }}
       EBS_DEVICE_PATH: ${{ secrets.EBS_DEVICE_PATH }}
+      GRAFANA_GCLOUD_STACK_ID: ${{ secrets.GRAFANA_GCLOUD_STACK_ID }}
+      GRAFANA_GCLOUD_API_KEY: ${{ secrets.GRAFANA_GCLOUD_API_KEY }}
+      GRAFANA_GCLOUD_API_URL: ${{ secrets.GRAFANA_GCLOUD_API_URL }}
+      GRAFANA_PASSWORD: ${{ secrets.GRAFANA_PASSWORD }}
+      PROMETHEUS_PUSH_API: ${{ secrets.PROMETHEUS_PUSH_API }}
+      PROMETHEUS_USERNAME: ${{ secrets.PROMETHEUS_USERNAME }}
+      LOKI_PUSH_API: ${{ secrets.LOKI_PUSH_API }}
+      LOKI_USERNAME: ${{ secrets.LOKI_USERNAME }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up ansible
@@ -120,6 +128,14 @@ jobs:
           ADMIN_EMAIL: $ADMIN_EMAIL
           FS_MOUNT_PATH: $FS_MOUNT_PATH
           EBS_DEVICE_PATH: $EBS_DEVICE_PATH
+          GRAFANA_GCLOUD_STACK_ID: $GRAFANA_GCLOUD_STACK_ID
+          GRAFANA_GCLOUD_API_KEY: $GRAFANA_GCLOUD_API_KEY
+          GRAFANA_GCLOUD_API_URL: $GRAFANA_GCLOUD_API_URL
+          GRAFANA_PASSWORD: $GRAFANA_PASSWORD
+          PROMETHEUS_PUSH_API: $PROMETHEUS_PUSH_API
+          PROMETHEUS_USERNAME: $PROMETHEUS_USERNAME
+          LOKI_PUSH_API: $LOKI_PUSH_API
+          LOKI_USERNAME: $LOKI_USERNAME
           EOF
       - name: Create AWS config and credentials
         env:
