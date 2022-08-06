@@ -59,6 +59,8 @@
         executable: /bin/bash
       register: configure_grafana_agent
       shell: |
+        domain={{DOMAIN}}
+        url_redirect_domain={{URL_REDIRECT_DOMAIN}}
         cat <<EOF | sudo tee /etc/grafana-agent.yaml > /dev/null
         integrations:
           agent:
@@ -152,6 +154,22 @@
                     - source_labels: 
                         - __meta_docker_container_log_stream
                       target_label: stream
+            - name: nginx_integration
+              clients:
+              - basic_auth:
+                  password: {{ GRAFANA_PASSWORD }}
+                  username: {{ LOKI_USERNAME }}
+                url: {{ LOKI_PUSH_API }}
+              target_config:
+                sync_period: 10s
+              scrape_configs:
+              - job_name: nginx-integration
+                static_configs:
+                - targets:
+                  - localhost
+                  labels:
+                    nginx_host: url_shortener_nginx
+                    __path__: /mnt/data/nginx/{$domain,$url_redirect_domain}/*.log
         metrics:
           global:
             scrape_interval: 60s
