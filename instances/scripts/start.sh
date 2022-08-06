@@ -235,13 +235,10 @@ do
 done
 
 # Configure and mount EBS volume
-../ansible/setup-file-system.sh $SSH_USER $SSH_PRIVATE_KEY_PATH
-
 # Copy postgres data to volume
-../ansible/copy-postgres-data.sh $SSH_USER $SSH_PRIVATE_KEY_PATH
-
 # Configure ssl for nginx
-../ansible/nginx-https.sh $SSH_USER $SSH_PRIVATE_KEY_PATH
+# Configure grafana
+../ansible/start.sh $SSH_USER $SSH_PRIVATE_KEY_PATH 
 
 # Rerun deploy job
 jobs_url=$(get_latest_github_workflow | tail -n 1)

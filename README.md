@@ -31,15 +31,10 @@ Provision infra: `terraform apply`
 
 Everything from here onwards is handled in `instances/scripts/start.sh`
 
-## 3. Attach EBS volume and copy postgres data over
-Store postgres data in a separate EBS volume so that it survives a new image build/EC2 termination
-`ansible/setup-file-system.sh <ssh user> <ssh private key path>`
+## 3. Run ansible script
+Run post-provisioning configurations such as mounting EBS volume, setting PostGreSQL data directory, nginx SSL, grafana
 
-## 4. configure SSL for nginx**
-This needs to be done after EC2 is provisioned and its IP addresss is set in route 53
-`ansible/nginx-https.sh <ssh user> <ssh private key path>`
-
-## 5. Deploy application
+## 4. Deploy application
 Rerun the latest deploy job in github action
 
 ## Diagram
@@ -60,7 +55,6 @@ EC2 and URL shortener will run from:
 * Use terraform modules to define reusable configurations
 * IAM user and policies for system admin
 * container image scan
-* Collect metric
-* Centralised log collection
 * Use terraform vault to store secrets
 * Nginx: Extract common location config into a file
+* Create postgres roles and user that have write access

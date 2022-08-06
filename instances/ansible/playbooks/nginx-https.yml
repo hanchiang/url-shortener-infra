@@ -3,7 +3,7 @@
   remote_user: "{{ USER }}"
   gather_facts: no
   vars_files:
-    - ./vars.yml
+    - ../vars.yml
   tasks:
     - name: Install required packages for SSL
       args:
@@ -29,7 +29,7 @@
       become_method: su
       become_user: root
       become_exe: "sudo su -"
-      async: 300
+      async: 600
       poll: 15
       loop: "{{ DOMAINS }}"
       shell: |
