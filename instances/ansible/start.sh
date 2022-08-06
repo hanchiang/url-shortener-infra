@@ -29,7 +29,7 @@ files=($(ls playbooks/*.yml))
 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u $SSH_USER -i aws_ec2.yml --private-key $SSH_PRIVATE_KEY_PATH playbooks/setup-file-system.yml
 
 # Copy postgres data to volume
-ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u $SSH_USER -i aws_ec2.yml --private-key $SSH_PRIVATE_KEY_PATH playbooks/copy-postgres-data.yml
+ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u $SSH_USER -i aws_ec2.yml --private-key $SSH_PRIVATE_KEY_PATH playbooks/postgres-data-directory.yml
 
 # Configure ssl for nginx
 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u $SSH_USER -i aws_ec2.yml --private-key $SSH_PRIVATE_KEY_PATH playbooks/nginx-https.yml
