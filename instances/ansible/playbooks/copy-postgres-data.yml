@@ -3,7 +3,7 @@
   remote_user: "{{ USER }}"
   gather_facts: no
   vars_files:
-    - ./vars.yml
+    - ../vars.yml
   tasks:
     - name: Create postgres data directory on mounted volume and copy files from default directory
       args:

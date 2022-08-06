@@ -3,7 +3,7 @@
   remote_user: "{{ USER }}"
   gather_facts: no
   vars_files:
-    - ./vars.yml
+    - ../vars.yml
   tasks:
     - name: Format file system
       args:

@@ -1,0 +1,170 @@
+- hosts: URL_shortener
+  name: Install grafana agent, docker integration
+  remote_user: "{{ USER }}"
+  gather_facts: no
+  vars_files:
+    - ../vars.yml
+  tasks:
+    - name: Install grafana agent
+      args:
+        executable: /bin/bash
+      register: install_grafana_agent
+      shell: |
+        # Grafana agent reference: https://grafana.com/docs/agent/latest/
+
+        # Install linux integration and install grafana agent
+        # https://grafana.com/docs/grafana-cloud/quickstart/agent_linuxnode/
+        sudo systemctl status --no-pager grafana-agent
+        if [ "$?" -ne 0 ]
+        then
+            sudo ARCH=amd64 GCLOUD_STACK_ID={{ GRAFANA_GCLOUD_STACK_ID }} GCLOUD_API_KEY={{ GRAFANA_GCLOUD_API_KEY }} GCLOUD_API_URL={{ GRAFANA_GCLOUD_API_URL }} /bin/sh -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/grafanacloud-install.sh)"
+            sudo usermod -a -G adm grafana-agent
+            sudo systemctl restart grafana-agent.service
+        else
+            echo "Grafana agent is already installed"
+        fi
+    - debug: var=install_grafana_agent.stdout_lines
+    - debug: var=install_grafana_agent.stderr_lines
+
+    - name: Install docker integration
+      args:
+        executable: /bin/bash
+      register: install_docker_integration
+      shell: |
+        # Install docker integration
+        # https://grafana.com/docs/grafana-cloud/data-configuration/integrations/integration-reference/integration-docker/
+        sudo usermod -a -G docker grafana-agent
+
+        sudo mkdir -p /etc/systemd/system/grafana-agent.service.d
+        sudo touch /etc/systemd/system/grafana-agent.service.d/override.conf
+
+        num_existing_line=$(sudo cat /etc/systemd/system/grafana-agent.service.d/override.conf | grep User=root | wc -l)
+        if [ "$num_existing_line" -eq 0 ]
+        then
+            sudo cat <<EOF | sudo tee -a /etc/systemd/system/grafana-agent.service.d/override.conf > /dev/null
+            [Service]
+            User=root
+        EOF
+        else
+            echo "Grafana user environment variable is already configured"
+        fi
+
+        sudo systemctl daemon-reload
+        sudo systemctl restart grafana-agent.service
+    - debug: var=install_docker_integration.stdout_lines
+    - debug: var=install_docker_integration.stderr_lines
+
+    - name: Configure grafana agent
+      args:
+        executable: /bin/bash
+      register: configure_grafana_agent
+      shell: |
+        cat <<EOF | sudo tee /etc/grafana-agent.yaml > /dev/null
+        integrations:
+          agent:
+            enabled: true
+          prometheus_remote_write:
+          - basic_auth:
+              username: {{ PROMETHEUS_USERNAME }}
+              password: {{ GRAFANA_PASSWORD }}
+            url: {{ PROMETHEUS_PUSH_API }}
+          # In order to see logs and metrics signals correlated on the same dashboard,
+          # you need to make sure that job and instance labels match in node_exporter integration config under metrics,
+          # and under logs. The job label should be set to integrations/node_exporter, and the agent sets it by default for metrics,
+          # so you only need to specify it for the log scrapes. The instance label should be set to a value that uniquely
+          # identifies the node being scraped. Please check the preferred agent configuration example below,
+          # with logs collected from systemd
+          node_exporter:
+            enabled: true
+            relabel_configs:
+            - replacement: "localhost:9090"
+              target_label: instance
+          # This integration supports metrics and logs for Docker containers.
+          # In order to see those signals correlated on the same dashboard, job and instance labels
+          # must match for cadvisor(metrics) and logs in the agent configuration file:
+          cadvisor:
+            enabled: true
+            docker_only: true
+            instance: "localhost:9090"
+            relabel_configs:
+              - action: replace
+                replacement: integrations/docker
+                target_label: job
+        logs:
+          positions_directory: /tmp/loki
+          configs:
+            - name: node_exporter_systemd
+              scrape_configs:
+              - job_name: integrations/node_exporter_journal_scrape
+                journal:
+                  max_age: 24h
+                  labels:
+                    instance: "localhost:9090"
+                    job: integrations/node_exporter
+                relabel_configs:
+                - source_labels: ['__journal__systemd_unit']
+                  target_label: 'unit'
+                - source_labels: ['__journal__boot_id']
+                  target_label: 'boot_id'
+                - source_labels: ['__journal__transport']
+                  target_label: 'transport'
+                - source_labels: ['__journal_priority_keyword']
+                  target_label: 'level'
+            - name: node_exporter_log
+              scrape_configs:
+              - job_name: integrations/node_exporter_direct_scrape
+                static_configs:
+                - targets:
+                  - localhost
+                  labels:
+                    __path__: /var/log/{syslog,messages,*.log}
+                    instance: "localhost:9090"
+                    job: integrations/node_exporter
+            - name: docker_integration
+              clients:
+                - url: {{ LOKI_PUSH_API }}
+                  basic_auth:
+                    username: {{ LOKI_USERNAME }}
+                    password: {{ GRAFANA_PASSWORD }}
+                  external_labels:
+                    instance: "localhost:9090"
+              target_config:
+                sync_period: 10s 
+              scrape_configs:
+                - job_name: integrations/docker
+                  docker_sd_configs:
+                    - host: unix:///var/run/docker.sock
+                      refresh_interval: 5s
+                  relabel_configs:
+                    - action: replace    
+                      replacement: integrations/docker
+                      source_labels: 
+                        - __meta_docker_container_id
+                      target_label: job 
+                    - source_labels: 
+                        - __meta_docker_container_name
+                      regex: '/(.*)'
+                      target_label: container
+                    - source_labels: 
+                        - __meta_docker_container_log_stream
+                      target_label: stream
+        metrics:
+          global:
+            scrape_interval: 60s
+            external_labels:
+              instance: "localhost:9090"
+              job: integrations/docker
+          wal_directory: /tmp/grafana-agent-wal
+          configs:
+          - name: integrations
+            remote_write:
+            - basic_auth:
+                password: {{ GRAFANA_PASSWORD }}
+                username: {{ PROMETHEUS_USERNAME }}
+              url: {{ PROMETHEUS_PUSH_API }}
+        EOF
+
+        sudo systemctl restart grafana-agent.service
+        sudo systemctl status --no-pager grafana-agent
+    - debug: var=configure_grafana_agent.stdout_lines
+    - debug: var=configure_grafana_agent.stderr_lines
