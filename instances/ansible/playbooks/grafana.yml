@@ -90,6 +90,10 @@
               - action: replace
                 replacement: integrations/docker
                 target_label: job
+          postgres_exporter:
+            enabled: true
+            data_source_names:
+              - "postgresql://{{ POSTGRES_USER }}:{{ POSTGRES_PASSWORD }}@localhost:5432/{{ POSTGRES_DB }}?sslmode=disable"
         logs:
           positions_directory: /tmp/loki
           configs:

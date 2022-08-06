@@ -66,6 +66,9 @@ jobs:
       PROMETHEUS_USERNAME: ${{ secrets.PROMETHEUS_USERNAME }}
       LOKI_PUSH_API: ${{ secrets.LOKI_PUSH_API }}
       LOKI_USERNAME: ${{ secrets.LOKI_USERNAME }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: $${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secret.POSTGRES_DB }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up ansible
@@ -136,6 +139,9 @@ jobs:
           PROMETHEUS_USERNAME: $PROMETHEUS_USERNAME
           LOKI_PUSH_API: $LOKI_PUSH_API
           LOKI_USERNAME: $LOKI_USERNAME
+          POSTGRES_USER: $POSTGRES_USER
+          POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+          POSTGRES_DB: $POSTGRES_DB
           EOF
       - name: Create AWS config and credentials
         env:
@@ -171,6 +177,8 @@ jobs:
         run: | 
           cd instances
           ./scripts/start.sh $URL_SHORTENER_REDEPLOY_TOKEN $SSH_USER ~/.ssh/url_shortener_rsa
+
+          sudo rm -rf ./instances/ansible/vars.yml ./instances/ansible/aws_ec2.yml ~/.ssh ~/.aws
   notify_unsuccessful:
     runs-on: ubuntu-latest
     needs: [start_ec2_and_deploy]
