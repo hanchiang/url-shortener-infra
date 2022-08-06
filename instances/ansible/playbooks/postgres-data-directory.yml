@@ -20,9 +20,6 @@
           sudo chown -R postgres:postgres $postgres_path
           sudo chmod 700 $postgres_path
         fi
-
-        # IMPORTANT!!! Do not copy files if they already exist, otherwise postgres data will be overwritten
-        sudo rsync -av --ignore-existing /var/lib/postgresql/13/main/ $postgres_path
     - debug: var=create_postgres_data_directory.stdout_lines
     - debug: var=create_postgres_data_directory.stderr_lines
     - name: Configure postgresql.conf
