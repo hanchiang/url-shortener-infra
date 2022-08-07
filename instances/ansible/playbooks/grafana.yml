@@ -79,7 +79,7 @@
           node_exporter:
             enabled: true
             relabel_configs:
-            - replacement: "localhost:9090"
+            - replacement: "url_shortener_ec2"
               target_label: instance
           # This integration supports metrics and logs for Docker containers.
           # In order to see those signals correlated on the same dashboard, job and instance labels
@@ -87,7 +87,7 @@
           cadvisor:
             enabled: true
             docker_only: true
-            instance: "localhost:9090"
+            instance: "url_shortener_ec2"
             relabel_configs:
               - action: replace
                 replacement: integrations/docker
@@ -112,7 +112,7 @@
                 journal:
                   max_age: 24h
                   labels:
-                    instance: "localhost:9090"
+                    instance: "url_shortener_ec2"
                     job: integrations/node_exporter
                 relabel_configs:
                 - source_labels: ['__journal__systemd_unit']
@@ -131,7 +131,7 @@
                   - localhost
                   labels:
                     __path__: /var/log/{syslog,messages,*.log}
-                    instance: "localhost:9090"
+                    instance: "url_shortener_ec2"
                     job: integrations/node_exporter
             - name: docker_integration
               clients:
@@ -140,7 +140,7 @@
                     username: {{ LOKI_USERNAME }}
                     password: {{ GRAFANA_PASSWORD }}
                   external_labels:
-                    instance: "localhost:9090"
+                    instance: "url_shortener_ec2"
               target_config:
                 sync_period: 10s 
               scrape_configs:
@@ -181,7 +181,7 @@
           global:
             scrape_interval: 60s
             external_labels:
-              instance: "localhost:9090"
+              instance: "url_shortener_ec2"
               job: integrations/docker
           wal_directory: /tmp/grafana-agent-wal
           configs:
