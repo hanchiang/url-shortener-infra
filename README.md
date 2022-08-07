@@ -56,5 +56,6 @@ EC2 and URL shortener will run from:
 * IAM user and policies for system admin
 * container image scan
 * Use terraform vault to store secrets
-* Nginx: Extract common location config into a file
-* Create postgres roles and user that have write access
+* Nginx: GeoIP2 https://github.com/leev/ngx_http_geoip2_module
+* Create postgres roles and user: app, grafana
+* Grafana: Alerts on infra & app, monitor grafana itself

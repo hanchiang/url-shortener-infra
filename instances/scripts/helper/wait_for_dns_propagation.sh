@@ -54,5 +54,4 @@ wait_for_dns_propagation () {
     done
 
     echo "unable to find dns for $ip_address. Check the DNS settings"
-    return 1
 }
