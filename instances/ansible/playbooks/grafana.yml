@@ -65,11 +65,13 @@
         integrations:
           agent:
             enabled: true
+          # Default integration
           prometheus_remote_write:
           - basic_auth:
               username: {{ PROMETHEUS_USERNAME }}
               password: {{ GRAFANA_PASSWORD }}
             url: {{ PROMETHEUS_PUSH_API }}
+          # Linux integration: https://grafana.com/docs/grafana-cloud/quickstart/agent_linuxnode/
           # In order to see logs and metrics signals correlated on the same dashboard,
           # you need to make sure that job and instance labels match in node_exporter integration config under metrics,
           # and under logs. The job label should be set to integrations/node_exporter, and the agent sets it by default for metrics,
@@ -81,6 +83,7 @@
             relabel_configs:
             - replacement: "url_shortener_ec2"
               target_label: instance
+          # Docker integration: https://grafana.com/docs/grafana-cloud/data-configuration/integrations/integration-reference/integration-docker/
           # This integration supports metrics and logs for Docker containers.
           # In order to see those signals correlated on the same dashboard, job and instance labels
           # must match for cadvisor(metrics) and logs in the agent configuration file:
@@ -92,10 +95,12 @@
               - action: replace
                 replacement: integrations/docker
                 target_label: job
+          # Postgres integration: https://grafana.com/docs/grafana-cloud/data-configuration/integrations/integration-reference/integration-postgres/
           postgres_exporter:
             enabled: true
             data_source_names:
               - "postgresql://{{ POSTGRES_USER }}:{{ POSTGRES_PASSWORD }}@localhost:5432/{{ POSTGRES_DB }}?sslmode=disable"
+          # Redis integration: https://grafana.com/docs/grafana-cloud/data-configuration/integrations/integration-reference/integration-redis/
           redis_exporter:
             enabled: true
             redis_addr: "redis://localhost:6379"
@@ -106,6 +111,7 @@
         logs:
           positions_directory: /tmp/loki
           configs:
+            # Linux integration
             - name: node_exporter_systemd
               scrape_configs:
               - job_name: integrations/node_exporter_journal_scrape
@@ -123,6 +129,7 @@
                   target_label: 'transport'
                 - source_labels: ['__journal_priority_keyword']
                   target_label: 'level'
+            # Linux integration
             - name: node_exporter_log
               scrape_configs:
               - job_name: integrations/node_exporter_direct_scrape
@@ -161,7 +168,7 @@
                     - source_labels: 
                         - __meta_docker_container_log_stream
                       target_label: stream
-            - name: nginx_integration
+            - name: nginx_access_log
               clients:
               - basic_auth:
                   password: {{ GRAFANA_PASSWORD }}
@@ -170,13 +177,13 @@
               target_config:
                 sync_period: 10s
               scrape_configs:
-              - job_name: nginx-integration
+              - job_name: nginx_access_log
                 static_configs:
                 - targets:
                   - localhost
                   labels:
                     nginx_host: url_shortener_nginx
-                    __path__: /mnt/data/nginx/{$domain,$url_redirect_domain}/*.log
+                    __path__: /mnt/data/nginx/{$domain,$url_redirect_domain}/access.log
         metrics:
           global:
             scrape_interval: 60s

@@ -81,6 +81,7 @@
           '"http_x_forwarded_for": "\$http_x_forwarded_for",'
           '"args": "\$args",'
           '"http_host": "\$http_host",'
+          '"http_origin": "\$http_origin",'
           '"http_referrer": "\$http_referer",'
           '"server_name": "\$server_name",'
           '"upstream": "\$upstream_addr",'
@@ -94,7 +95,9 @@
           '"scheme": "\$scheme",'
           '"server_protocol": "\$server_protocol",'
           '"pipe": "\$pipe",'
-          '"gzip_ratio": "\$gzip_ratio"'
+          '"gzip_ratio": "\$gzip_ratio",'
+          '"geoip_country_code": "\$geoip_country_code",'
+          '"geoip_city_name": "\$geoip_city_name"'
         '}';
         EOF
 
@@ -133,6 +136,14 @@
 
         cat <<EOF | sudo tee /etc/nginx/sites-available/{{ DOMAIN }} > /dev/null
         include /etc/nginx/common/url_shortener_upstream.conf;
+
+        geoip2 /usr/share/GeoIP/GeoLite2-Country.mmdb {
+          \$geoip_country_code default=US source=\$remote_addr country iso_code;
+        }
+
+        geoip2 /usr/share/GeoIP/GeoLite2-City.mmdb {
+          \$geoip_city_name default=US source=\$remote_addr city names en;
+        }
 
         server {
           listen 80;
