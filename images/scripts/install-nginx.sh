@@ -2,10 +2,12 @@
 
 ### Install nginx
 echo "Installing nginx"
-nginx="stable" # use nginx=development for latest development version
-sudo add-apt-repository -y ppa:nginx/$nginx
+NGINX_BRANCH="stable" # use nginx=development for latest development version
+NGINX_VERSION="1.18.0"
+
+sudo add-apt-repository -y ppa:nginx/$NGINX_BRANCH
 sudo apt-get update
-sudo apt-get -y install nginx=1.18.0-3ubuntu1+focal2
+sudo apt-get -y install nginx=$NGINX_VERSION-3ubuntu1+focal2
 
 sudo ufw --force enable
 sudo ufw allow 'Nginx Full'
@@ -91,3 +93,65 @@ EOF
 sudo ln -sf /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
+
+
+# Compile GeoIP2 module for nginx
+# Guide: https://medium.com/@maxime.durand.54/add-the-geoip2-module-to-nginx-f0b56e015763
+git clone https://github.com/leev/ngx_http_geoip2_module.git
+
+echo "Compiling GeoIP2 module for nginx"
+sudo apt-get -y install \
+libmaxminddb0 libmaxminddb-dev mmdb-bin \
+build-essential libpcre3-dev zlib1g-dev 
+
+# Download nginx source, compile with GeoIP2 module
+wget -q http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz
+tar -zxf nginx-$NGINX_VERSION.tar.gz
+rm nginx-$NGINX_VERSION.tar.gz
+cd nginx-$NGINX_VERSION
+
+./configure --with-compat --add-dynamic-module=../ngx_http_geoip2_module
+make modules
+
+sudo mkdir -p /usr/lib/nginx/modules
+sudo cp objs/ngx_http_geoip2_module.so /usr/lib/nginx/modules
+
+sudo sed -i "1 i\load_module modules/ngx_http_geoip2_module.so;" /etc/nginx/nginx.conf
+sudo nginx -t
+sudo systemctl restart nginx
+
+
+echo "Installing geoipupdate"
+
+sudo add-apt-repository -y ppa:maxmind/ppa
+sudo apt update
+sudo apt-get -y install geoipupdate 
+
+cat<<EOF | sudo tee /etc/GeoIP.conf > /dev/null
+ # GeoIP.conf file for geoipupdate program, for versions >= 3.1.1.
+ # Used to update GeoIP databases from https://www.maxmind.com.
+ # For more information about this config file, visit the docs at
+ # https://dev.maxmind.com/geoip/updating-databases?lang=en.
+ 
+ # AccountID is from your MaxMind account.
+ AccountID $MAXMIND_ACCOUNT_ID
+ 
+ # LicenseKey is from your MaxMind account
+ LicenseKey $MAXMIND_LICENSE_KEY
+ 
+ # EditionIDs is from your MaxMind account.
+ EditionIDs GeoLite2-ASN GeoLite2-City GeoLite2-Country
+EOF
+unset MAXMIND_ACCOUNT_ID MAXMIND_LICENSE_KEY
+
+cat <<EOF >> mycron
+MAILTO="$ADMIN_EMAIL"
+# Run GeoIP database every day at 1400 UTC
+0 14 * * * sudo /usr/bin/geoipupdate
+EOF
+crontab mycron
+crontab -l
+rm mycron
+
+# Run it
+sudo geoipupdate

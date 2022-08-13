@@ -5,7 +5,7 @@ variable "region" {
 
 variable "ssh_public_key_src_path" {
   type = string
-  default = "/Users/hanchiang/.ssh/url_shortener_rsa.pub"
+  default = ""
 }
 
 variable "ssh_public_key_dest_path" {
@@ -15,7 +15,7 @@ variable "ssh_public_key_dest_path" {
 
 variable "postgres_password_src_path" {
   type = string
-  default = "/Users/hanchiang/Documents/CODING-PROJECTS/NODE/url-shortener/url-shortener-infra/secrets/postgres/user_password.txt"
+  default = ""
 }
 
 variable "postgres_password_dest_path" {
@@ -26,6 +26,21 @@ variable "postgres_password_dest_path" {
 variable "fs_mount_path" {
   type = string
   default = "/mnt/data"
+}
+
+variable "maxmind_account_id" {
+  type = string
+  default = ""
+}
+
+variable "maxmind_license_key" {
+  type = string
+  default = ""
+}
+
+variable "admin_email" {
+  type = string
+  default = ""
 }
 
 # source blocks are generated from your builders; a source can be referenced in
@@ -94,7 +109,11 @@ build {
         FS_MOUNT_PATH: var.fs_mount_path
         USER: "han",
         DOMAIN: "api.urlshortener.yaphc.com"
-        URL_REDIRECT_DOMAIN: "go.yaphc.com"
+        URL_REDIRECT_DOMAIN: "go.yaphc.com",
+        ADMIN_EMAIL: var.admin_email
+        MAXMIND_ACCOUNT_ID: var.maxmind_account_id,
+        MAXMIND_LICENSE_KEY: var.maxmind_license_key,
+        ADMIN_EMAIL: var.admin_email
       }
     }
 
