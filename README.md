@@ -58,4 +58,7 @@ EC2 and URL shortener will run from:
 * Use terraform vault to store secrets
 * Nginx: GeoIP2 https://github.com/leev/ngx_http_geoip2_module
 * Create postgres roles and user: app, grafana
-* Grafana: Alerts on infra & app, monitor grafana itself
+* Grafana: Traces, alerts on infra & app, monitor grafana itself
+
+# Learnings:
+* Messed up PostGreSQL WAL by `rsync`ing `/var/lib/postgresql/13/main/` to its new data directory. Don't do it.

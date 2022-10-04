@@ -140,6 +140,7 @@
                     __path__: /var/log/{syslog,messages,*.log}
                     instance: "url_shortener_ec2"
                     job: integrations/node_exporter
+            # Docker integration
             - name: docker_integration
               clients:
                 - url: {{ LOKI_PUSH_API }}
