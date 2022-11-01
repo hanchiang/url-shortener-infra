@@ -120,8 +120,7 @@ start_ec2() {
     printf "\n"
 }
 
-#### Trigger github action deployment
-get_latest_github_workflow () {
+get_latest_github_workflow_jobs_url () {
     echo "Trigger deploy on github actions"
     echo "Getting the latest github actions workflow"
 
@@ -148,78 +147,6 @@ get_latest_github_workflow () {
     echo $jobs_url
 }
 
-get_latest_deploy_job () {
-    local job_url
-    job_url=$1
-
-    local deploy_job
-    local job_name
-    local job_conclusion
-    local job_id
-
-    echo -e "Getting the latest deploy job"
-    deploy_job=$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token $GITHUB_TOKEN" $jobs_url | jq '[.jobs[] | select(.name | ascii_downcase | contains("deploy"))][0]')
-    if [ "$?" -ne 0 ]
-    then
-        return 1
-    fi
-
-    job_name=$(echo $deploy_job | jq -r '.name')
-    job_conclusion=$(echo $deploy_job | jq -r '.conclusion')
-    job_url=$(echo $deploy_job | jq -r '.url')
-    job_id=$(echo $deploy_job | jq -r '.id')
-
-    echo -e "job url: $job_url, job name: $job_name, conclusion: $job_conclusion"
-    echo $job_id
-}
-
-rerun_job () {
-    local job_id
-    job_id=$1
-
-    echo "Re-run job $job_id"
-    curl -X POST  -H "Accept: application/vnd.github+json" -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/hanchiang/url-shortener-backend/actions/jobs/$job_id/rerun
-    printf "\n"
-}
-
-wait_for_deploy_success () {
-    jobs_url=$1
-
-    local seconds_to_wait=180
-
-    start=$(date +%s)
-    time_elapsed=$(get_time_elapsed $start | tail -n 1)
-
-    deploy_job=$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token $GITHUB_TOKEN" $jobs_url | jq '[.jobs[] | select(.name | ascii_downcase | contains("deploy"))][0]')
-    job_conclusion=$(echo $deploy_job | jq -r '.conclusion')
-
-    while [ "$job_conclusion" != "success" ] && [ "$time_elapsed" -lt "$seconds_to_wait" ];
-    do
-        echo -e "Getting the deploy job: $jobs_url"
-
-        deploy_job=$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token $GITHUB_TOKEN" $jobs_url | jq '[.jobs[] | select(.name | ascii_downcase | contains("deploy"))][0]')
-        job_name=$(echo $deploy_job | jq -r '.name')
-        job_conclusion=$(echo $deploy_job | jq -r '.conclusion')
-        job_url=$(echo $deploy_job | jq -r '.url')
-        job_id=$(echo $deploy_job | jq -r '.id')
-        echo -e "job url: $job_url, job name: $job_name, conclusion: $job_conclusion"
-
-        if [ "$job_conclusion" != "success" ]
-        then
-            echo "Latest deploy job status: $job_conclusion"
-            echo "Waiting for deploy to be successful"
-            echo "job url: $job_url"
-            sleep 15
-            time_elapsed=$(get_time_elapsed $start | tail -n 1)
-        else
-            echo "URL shortener deployment is successful!"
-            printf "\n"
-            return 0
-        fi
-    done
-    printf "\n"
-    return 1
-}
 
 # Start EC2
 wait_for_ec2_stop
@@ -234,19 +161,16 @@ do
     printf "\n"
 done
 
-# Configure and mount EBS volume
-# Copy postgres data to volume
-# Configure ssl for nginx
-# Configure grafana
+# Configure EC2
 ../ansible/start.sh $SSH_USER $SSH_PRIVATE_KEY_PATH 
 
-# Rerun deploy job
-jobs_url=$(get_latest_github_workflow | tail -n 1)
-job_id=$(get_latest_deploy_job $jobs_url | tail -n 1)
-rerun_job $job_id 
+# Re-run deploy workflow
+deploy_workflow=$(curl  -H "Accept: application/vnd.github+json" -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/hanchiang/url-shortener-backend/actions/workflows |  jq '.workflows[] | select(.state == "active" and select(.name | ascii_downcase | contains("build and deploy")))')
+printf "\n"
 
-# Get deploy job status
-jobs_url=$(get_latest_github_workflow | tail -n 1)
-wait_for_deploy_success $jobs_url
+workflow_id=$(echo $deploy_workflow | jq -r .id)
+curl -X POST  -H "Accept: application/vnd.github+json" -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/hanchiang/url-shortener-backend/actions/workflows/$workflow_id/dispatches \
+ -d '{"ref":"master"}'
+printf "\n"
 
 echo "Script completed in $SECONDS seconds"

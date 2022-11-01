@@ -59,6 +59,7 @@ EC2 and URL shortener will run from:
 * Nginx: GeoIP2 https://github.com/leev/ngx_http_geoip2_module
 * Create postgres roles and user: app, grafana
 * Grafana: Traces, alerts on infra & app, monitor grafana itself
+* Use AWS ECS for multi container deployment
 
 # Learnings:
 * Messed up PostGreSQL WAL by `rsync`ing `/var/lib/postgresql/13/main/` to its new data directory. Don't do it.
