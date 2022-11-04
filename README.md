@@ -51,15 +51,17 @@ EC2 and URL shortener will run from:
 * 2am UTC - 3pm UTC on weekends
 
 ## TODO:
+* Extract common functions into a reusable python module
 * Use ansible roles to define reusable configurations
 * Use terraform modules to define reusable configurations
 * IAM user and policies for system admin
 * container image scan
 * Use terraform vault to store secrets
-* Nginx: GeoIP2 https://github.com/leev/ngx_http_geoip2_module
 * Create postgres roles and user: app, grafana
 * Grafana: Traces, alerts on infra & app, monitor grafana itself
 * Use AWS ECS for multi container deployment
+* Update architecture diagram
+* Dockerise nginx
 
 # Learnings:
 * Messed up PostGreSQL WAL by `rsync`ing `/var/lib/postgresql/13/main/` to its new data directory. Don't do it.
