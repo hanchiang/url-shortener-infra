@@ -118,6 +118,9 @@ jobs:
               prefix: tag
             - key: tags.Name
               separator: ''
+          include_filters:
+          - tag:Name:
+            - 'URL_shortener'
           EOF
 
           # Create variables
