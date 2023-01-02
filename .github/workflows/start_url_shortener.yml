@@ -192,7 +192,7 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         run: |
           now=$(date +%Y-%m-%dT%H:%M:%S)
-          payload=$(echo "{\"text\":\"URL shortener backend: Failed to start EC2 and deploy URL shortener at <DATE>. Workflow: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\"}" | sed "s~<DATE>~$now~")
+          payload=$(echo "{\"text\":\"URL shortener infra: Failed to start EC2 and deploy URL shortener at <DATE>. Workflow: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\"}" | sed "s~<DATE>~$now~")
           curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK
   notify_successful:
     runs-on: ubuntu-latest
