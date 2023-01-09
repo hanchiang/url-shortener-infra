@@ -1,8 +1,8 @@
 name: Health check for EC2 and URL shortener
 on:
   schedule:
-    - cron: '5,15,25,35,45,55 5-14 * * 1-5' # weekdays
-    - cron: '5,15,25,35,45,55 2-14 * * 0,6' # weekends, 0 = sunday
+    - cron: '5,35,55 5-14 * * 1-5' # weekdays
+    - cron: '5,35,55 2-14 * * 0,6' # weekends, 0 = sunday
   workflow_dispatch:
     inputs:
       logLevel:
