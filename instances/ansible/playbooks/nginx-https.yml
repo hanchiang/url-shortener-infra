@@ -39,8 +39,12 @@
         SSL_KEY_FILE_PATH="/etc/ssl/{{ item }}/private.key"
 
         # save a backup of nginx config
-        echo "Saving a backup of /etc/nginx/sites-available/{{ DOMAIN }}"
-        cp /etc/nginx/sites-available/{{ DOMAIN }} /etc/nginx/sites-available/{{ DOMAIN }}.bak
+        NGINX_BACKUP_FILE=/etc/nginx/sites-available/{{ DOMAIN }}.bak
+        if [ ! -s "$NGINX_BACKUP_FILE" ]
+        then
+          echo "Saving a backup of /etc/nginx/sites-available/{{ DOMAIN }}"
+          cp /etc/nginx/sites-available/{{ DOMAIN }} /etc/nginx/sites-available/{{ DOMAIN }}.bak
+        fi
 
         if [ -s "$SSL_CERT_FILE_PATH" ] && [ -s "$SSL_KEY_FILE_PATH" ]
         then
