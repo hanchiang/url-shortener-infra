@@ -44,12 +44,6 @@ Rerun the latest deploy job in github action
 **Deployment pipeline**
 ![](diagrams/deployment-pipeline.drawio.png)
 
-
-# Operational hours
-EC2 and URL shortener will run from:
-* 5am UTC - 3pm UTC on weekdays
-* 2am UTC - 3pm UTC on weekends
-
 ## TODO:
 * Extract common functions into a reusable python module
 * Use ansible roles to define reusable configurations
