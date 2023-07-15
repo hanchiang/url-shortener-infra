@@ -65,7 +65,7 @@
         integrations:
           agent:
             enabled: true
-          # Default integration
+          # Default integration. https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.remote_write/
           prometheus_remote_write:
           - basic_auth:
               username: {{ PROMETHEUS_USERNAME }}
@@ -171,20 +171,21 @@
                       target_label: stream
             - name: nginx_access_log
               clients:
-              - basic_auth:
-                  password: {{ GRAFANA_PASSWORD }}
-                  username: {{ LOKI_USERNAME }}
-                url: {{ LOKI_PUSH_API }}
+                - basic_auth:
+                    password: {{ GRAFANA_PASSWORD }}
+                    username: {{ LOKI_USERNAME }}
+                  url: {{ LOKI_PUSH_API }}
               target_config:
                 sync_period: 10s
               scrape_configs:
-              - job_name: nginx_access_log
-                static_configs:
-                - targets:
-                  - localhost
-                  labels:
-                    nginx_host: url_shortener_nginx
-                    __path__: /mnt/data/nginx/{$domain,$url_redirect_domain}/access.log
+                - job_name: nginx_access_log
+                  static_configs:
+                  - targets:
+                    - localhost
+                    labels:
+                    # TODO: standardise labels
+                      nginx_host: url_shortener_nginx
+                      __path__: /mnt/data/nginx/{$domain,$url_redirect_domain}/access.log      
         metrics:
           global:
             scrape_interval: 60s
