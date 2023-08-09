@@ -13,7 +13,7 @@ variable "region"{
 
 variable "ec2_instance_type" {
   description = "Instance type"
-  default = "t2.micro"
+  default = "t4g.micro"
 }
 
 variable "ec2_az" {
@@ -36,8 +36,23 @@ variable "ssh_user" {
   type = string
 }
 
-variable "url_shortener_ebs" {
-  default = "vol-032cdd105723e4765"
+data "aws_ebs_volume" "ebs_volume" {
+  most_recent = true
+
+  filter {
+    name   = "volume-type"
+    values = ["gp2"]
+  }
+
+  filter {
+    name   = "tag:Name"
+    values = ["URL_shortener"]
+  }
+
+  filter {
+    name = "volume-id"
+    values = ["vol-0b2d1d1a7d5f915f4"]
+  }
 }
 
 data "aws_ami" "ec2_ami" {

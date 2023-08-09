@@ -81,12 +81,16 @@ resource "aws_security_group" "sg_22_80_443" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = {
+    Name = "URL_shortener"
+  }
 }
 
 resource "aws_ebs_snapshot" "url_shortener_ebs_snapshot" {
   # https://github.com/hashicorp/terraform/issues/24527
   # ebs_block_device is a set, not a list
-  volume_id = var.url_shortener_ebs
+  volume_id = data.aws_ebs_volume.ebs_volume.id
 
   tags = {
     Name = "URL_shortener"
@@ -95,7 +99,7 @@ resource "aws_ebs_snapshot" "url_shortener_ebs_snapshot" {
 
 resource "aws_volume_attachment" "data_attachment" {
   device_name = "/dev/xvdf"
-  volume_id   = var.url_shortener_ebs
+  volume_id   = data.aws_ebs_volume.ebs_volume.id
   instance_id = aws_instance.web.id
 }
 
@@ -106,6 +110,9 @@ resource "aws_instance" "web" {
   vpc_security_group_ids      = [aws_security_group.sg_22_80_443.id]
   availability_zone = var.ec2_az
   associate_public_ip_address = true
+  credit_specification {
+    cpu_credits = "standard"
+  }
 
   root_block_device {
     delete_on_termination = true
