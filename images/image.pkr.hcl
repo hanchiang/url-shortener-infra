@@ -48,7 +48,7 @@ variable "admin_email" {
 # source.
 source "amazon-ebs" "url_shortener" {
   ami_name      = "url_shortener"
-  instance_type = "t2.micro"
+  instance_type = "t4g.micro"
   region        = var.region
   force_deregister   = true
   force_delete_snapshot = true
@@ -56,7 +56,7 @@ source "amazon-ebs" "url_shortener" {
 
   source_ami_filter {
     filters = {
-      name                = "ubuntu/images/*ubuntu-focal-20.04-amd64-server-*"
+      name                = "ubuntu/images/hvm-ssd/*ubuntu-jammy-22.04-arm64-server*"
       root-device-type    = "ebs"
       virtualization-type = "hvm"
     }
