@@ -3,15 +3,15 @@
 ### Install nginx
 echo "Installing nginx"
 NGINX_BRANCH="stable" # use nginx=development for latest development version
-NGINX_VERSION="1.18.0"
 
 sudo add-apt-repository -y ppa:nginx/$NGINX_BRANCH
-sudo apt-get update
-sudo apt-get -y install nginx=$NGINX_VERSION-3ubuntu1+focal2
+sudo apt update
+sudo apt -y install nginx=1.18.0-6ubuntu14
 
 sudo ufw --force enable
-sudo ufw allow 'Nginx Full'
-sudo ufw status
+sudo ufw allow 80
+sudo ufw allow 443
+sudo ufw status verbose
 
 sudo systemctl enable nginx
 sudo systemctl start nginx
@@ -100,11 +100,12 @@ sudo systemctl reload nginx
 git clone https://github.com/leev/ngx_http_geoip2_module.git
 
 echo "Compiling GeoIP2 module for nginx"
-sudo apt-get -y install \
+sudo apt -y install \
 libmaxminddb0 libmaxminddb-dev mmdb-bin \
 build-essential libpcre3-dev zlib1g-dev 
 
 # Download nginx source, compile with GeoIP2 module
+NGINX_VERSION="1.18.0"
 wget -q http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz
 tar -zxf nginx-$NGINX_VERSION.tar.gz
 rm nginx-$NGINX_VERSION.tar.gz
@@ -116,7 +117,7 @@ make modules
 sudo mkdir -p /usr/lib/nginx/modules
 sudo cp objs/ngx_http_geoip2_module.so /usr/lib/nginx/modules
 
-sudo sed -i "1 i\load_module modules/ngx_http_geoip2_module.so;" /etc/nginx/nginx.conf
+# sudo sed -i "1 i\load_module modules/ngx_http_geoip2_module.so;" /etc/nginx/nginx.conf
 sudo nginx -t
 sudo systemctl restart nginx
 
@@ -125,7 +126,7 @@ echo "Installing geoipupdate"
 
 sudo add-apt-repository -y ppa:maxmind/ppa
 sudo apt update
-sudo apt-get -y install geoipupdate 
+sudo apt -y install geoipupdate 
 
 cat<<EOF | sudo tee /etc/GeoIP.conf > /dev/null
  # GeoIP.conf file for geoipupdate program, for versions >= 3.1.1.
@@ -144,14 +145,18 @@ cat<<EOF | sudo tee /etc/GeoIP.conf > /dev/null
 EOF
 unset MAXMIND_ACCOUNT_ID MAXMIND_LICENSE_KEY
 
+MAXMIND_DIR="/usr/share/GeoIP"
+
 cat <<EOF >> mycron
 MAILTO="$ADMIN_EMAIL"
 # Run GeoIP database every day at 1400 UTC
-0 14 * * * sudo /usr/bin/geoipupdate
+0 14 * * * sudo /usr/bin/geoipupdate -v -d $MAXMIND_DIR
 EOF
 crontab mycron
 crontab -l
 rm mycron
 
+sudo mkdir -p $MAXMIND_DIR
+
 # Run it
-sudo geoipupdate
+sudo geoipupdate -v -d $MAXMIND_DIR
