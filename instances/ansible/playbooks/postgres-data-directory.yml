@@ -10,7 +10,7 @@
         executable: /bin/bash
       register: create_postgres_data_directory
       shell: |
-        postgres_path="{{ FS_MOUNT_PATH }}/postgresql/13/data"
+        postgres_path="{{ FS_MOUNT_PATH }}/postgresql/{{ POSTGRES_VERSION }}/data"
 
         if [ -d "$postgres_path" ]
         then
@@ -27,11 +27,11 @@
         executable: /bin/bash
       register: postgres_conf_data_directory
       shell: |
-        postgres_path="{{ FS_MOUNT_PATH }}/postgresql/13/data"
+        postgres_path="{{ FS_MOUNT_PATH }}/postgresql/{{ POSTGRES_VERSION }}/data"
 
-        sudo mkdir -p /etc/postgresql/13/main/conf.d
+        sudo mkdir -p /etc/postgresql/{{ POSTGRES_VERSION }}/main/conf.d
 
-        cat <<EOF | sudo tee /etc/postgresql/13/main/conf.d/postgresql.conf > /dev/null 
+        cat <<EOF | sudo tee /etc/postgresql/{{ POSTGRES_VERSION }}/main/conf.d/postgresql.conf > /dev/null 
         #------------------------------------------------------------------------------
         # FILE LOCATIONS
         #------------------------------------------------------------------------------
@@ -67,7 +67,7 @@
         executable: /bin/bash
       register: postgres_systemd
       shell: |
-        postgres_path="{{ FS_MOUNT_PATH }}/postgresql/13/data"
+        postgres_path="{{ FS_MOUNT_PATH }}/postgresql/{{ POSTGRES_VERSION }}/data"
 
         sudo mkdir -p /etc/systemd/system/postgresql.service.d
         sudo touch /etc/systemd/system/postgresql.service.d/override.conf
