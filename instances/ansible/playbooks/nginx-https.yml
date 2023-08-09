@@ -16,8 +16,8 @@
       shell: |
         export DEBIAN_FRONTEND=noninteractive
 
-        apt-get -y install certbot
-        apt-get -y install python3-certbot-nginx
+        apt -y install certbot
+        apt -y install python3-certbot-nginx
     - debug: var=install_required_packages.stdout_lines
     - debug: var=install_required_packages.stderr_lines
 
@@ -33,9 +33,9 @@
       poll: 15
       loop: "{{ DOMAINS }}"
       shell: |
-        mkdir -p /etc/ssl/{{ item }}
+        mkdir -p /etc/letsencrypt/live/{{ item }}
 
-        SSL_CERT_FILE_PATH="/etc/letsencrypt/live/{{ item }}/cert.pem"
+        SSL_CERT_FILE_PATH="/etc/letsencrypt/live/{{ item }}/fullchain.pem"
         SSL_KEY_FILE_PATH="/etc/letsencrypt/live/{{ item }}/privkey.pem"
 
         if [ -s "$SSL_CERT_FILE_PATH" ] && [ -s "$SSL_KEY_FILE_PATH" ]
@@ -172,7 +172,7 @@
         server {
           listen 443 ssl;
 
-          ssl_certificate      /etc/letsencrypt/live/{{ DOMAIN }}/cert.pem;
+          ssl_certificate      /etc/letsencrypt/live/{{ DOMAIN }}/fullchain.pem;
           ssl_certificate_key  /etc/letsencrypt/live/{{ DOMAIN }}/privkey.pem;
 
           server_name {{ DOMAIN }};
@@ -206,7 +206,7 @@
         server {
           listen 443 ssl;
 
-          ssl_certificate      /etc/letsencrypt/live/{{ URL_REDIRECT_DOMAIN }}/cert.pem;
+          ssl_certificate      /etc/letsencrypt/live/{{ URL_REDIRECT_DOMAIN }}/fullchain.pem;
           ssl_certificate_key  /etc/letsencrypt/live/{{ URL_REDIRECT_DOMAIN }}/privkey.pem;
 
           server_name {{ URL_REDIRECT_DOMAIN }};

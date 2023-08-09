@@ -51,6 +51,7 @@ jobs:
     needs: [health_check]
     if: ${{ needs.health_check.outputs.health_check_outcome == 'failure' }}
     env:
+      POSTGRES_VERSION: ${{ vars.POSTGRES_VERSION }}
       DOMAIN: ${{ secrets.DOMAIN }}
       URL_REDIRECT_DOMAIN: ${{ secrets.URL_REDIRECT_DOMAIN }}
       SSH_USER: ${{ secrets.SSH_USER }}
@@ -58,6 +59,8 @@ jobs:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       FS_MOUNT_PATH: ${{ secrets.FS_MOUNT_PATH }}
       EBS_DEVICE_PATH: ${{ secrets.EBS_DEVICE_PATH }}
+      GCLOUD_HOSTED_METRICS_ID: ${{ secrets.GCLOUD_HOSTED_METRICS_ID }}
+      GCLOUD_HOSTED_LOGS_ID: ${{ secrets.GCLOUD_HOSTED_LOGS_ID }}
       GRAFANA_GCLOUD_STACK_ID: ${{ secrets.GRAFANA_GCLOUD_STACK_ID }}
       GRAFANA_GCLOUD_API_KEY: ${{ secrets.GRAFANA_GCLOUD_API_KEY }}
       GRAFANA_GCLOUD_API_URL: ${{ secrets.GRAFANA_GCLOUD_API_URL }}
@@ -133,6 +136,8 @@ jobs:
             - $URL_REDIRECT_DOMAIN
           ADMIN_EMAIL: $ADMIN_EMAIL
           FS_MOUNT_PATH: $FS_MOUNT_PATH
+          GCLOUD_HOSTED_METRICS_ID: $GCLOUD_HOSTED_METRICS_ID
+          GCLOUD_HOSTED_LOGS_ID: $GCLOUD_HOSTED_LOGS_ID
           EBS_DEVICE_PATH: $EBS_DEVICE_PATH
           GRAFANA_GCLOUD_STACK_ID: $GRAFANA_GCLOUD_STACK_ID
           GRAFANA_GCLOUD_API_KEY: $GRAFANA_GCLOUD_API_KEY
@@ -142,6 +147,7 @@ jobs:
           PROMETHEUS_USERNAME: $PROMETHEUS_USERNAME
           LOKI_PUSH_API: $LOKI_PUSH_API
           LOKI_USERNAME: $LOKI_USERNAME
+          POSTGRES_VERSION: $POSTGRES_VERSION
           POSTGRES_USER: $POSTGRES_USER
           POSTGRES_PASSWORD: $POSTGRES_PASSWORD
           POSTGRES_DB: $POSTGRES_DB

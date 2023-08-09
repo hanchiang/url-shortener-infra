@@ -10,8 +10,8 @@
         executable: /bin/bash
       register: format_file_system
       shell: |
-        # TODO: xvdf
-        file_system=$(lsblk -f | grep xvdf | awk '{print $2}')
+        # TODO: nvme1n1
+        file_system=$(lsblk -f | grep nvme1n1 | awk '{print $2}')
         
         # IMPORTANT!!! Format the disk only if it is not already formatted, otherwise existing data will be wiped out
         if [ -z "$file_system" ]
@@ -28,7 +28,7 @@
         executable: /bin/bash
       register: configure_file_system
       shell: |
-        file_system=$(lsblk -f | grep xvdf | awk '{print $2}')
+        file_system=$(lsblk -f | grep nvme1n1 | awk '{print $2}')
         sudo mkdir -p {{ FS_MOUNT_PATH }}
         sudo mount {{ EBS_DEVICE_PATH }} {{ FS_MOUNT_PATH }}
 
