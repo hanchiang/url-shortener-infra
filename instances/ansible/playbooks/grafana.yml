@@ -10,6 +10,7 @@
         executable: /bin/bash
       register: install_grafana_agent
       shell: |
+        # TODO: Check out flow mode
         # Grafana agent reference: https://grafana.com/docs/agent/latest/
 
         # Install linux integration and install grafana agent
@@ -17,7 +18,7 @@
         sudo systemctl status --no-pager grafana-agent
         if [ "$?" -ne 0 ]
         then
-            sudo ARCH=amd64 GCLOUD_STACK_ID={{ GRAFANA_GCLOUD_STACK_ID }} GCLOUD_API_KEY={{ GRAFANA_GCLOUD_API_KEY }} GCLOUD_API_URL={{ GRAFANA_GCLOUD_API_URL }} /bin/sh -c "$(curl -fsSL https://raw.githubusercontent.com/grafana/agent/release/production/grafanacloud-install.sh)"
+            sudo ARCH="arm64" GCLOUD_HOSTED_METRICS_URL="https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push" GCLOUD_HOSTED_METRICS_ID="{{ GCLOUD_HOSTED_METRICS_ID }}" GCLOUD_SCRAPE_INTERVAL="60s" GCLOUD_HOSTED_LOGS_URL="https://logs-prod3.grafana.net/loki/api/v1/push" GCLOUD_HOSTED_LOGS_ID="{{ GCLOUD_HOSTED_LOGS_ID }}" GCLOUD_RW_API_KEY="{{ GRAFANA_GCLOUD_API_KEY }}" /bin/sh -c "$(curl -fsSL https://storage.googleapis.com/cloud-onboarding/agent/scripts/grafanacloud-install.sh)"
             sudo usermod -a -G adm grafana-agent
             sudo systemctl restart grafana-agent.service
         else
