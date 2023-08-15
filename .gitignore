@@ -66,3 +66,4 @@ adhoc_scripts/
 observability/grafana
 
 instances/letsencrypt*
+myreadme.txt

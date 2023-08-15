@@ -127,10 +127,7 @@ build {
         ADMIN_EMAIL: var.admin_email
         MAXMIND_ACCOUNT_ID: var.maxmind_account_id
         MAXMIND_LICENSE_KEY: var.maxmind_license_key
-        URL_SHORTENER_SSL_CERT_PATH: var.url_shortener_ssl_cert_dest_path
-        URL_SHORTENER_SSL_KEY_PATH: var.url_shortener_ssl_key_dest_path
-        URL_REDIRECT_SSL_CERT_PATH: var.url_redirect_ssl_cert_dest_path
-        URL_REDIRECT_SSL_KEY_PATH: var.url_redirect_ssl_key_dest_path
+        LETSENCRYPT_PATH: var.letsencrypt_dest_path
       }
     }
 
