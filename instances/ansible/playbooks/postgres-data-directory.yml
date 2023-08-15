@@ -19,6 +19,7 @@
           sudo mkdir -p $postgres_path
           sudo chown -R postgres:postgres $postgres_path
           sudo chmod 700 $postgres_path
+          sudo rsync -av /var/lib/postgresql/{{ POSTGRES_VERSION }}/main $postgres_path
         fi
     - debug: var=create_postgres_data_directory.stdout_lines
     - debug: var=create_postgres_data_directory.stderr_lines
