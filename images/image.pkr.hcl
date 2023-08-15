@@ -43,6 +43,16 @@ variable "admin_email" {
   default = ""
 }
 
+variable "letsencrypt_src_path" {
+  type = string
+  default = ""
+}
+
+variable "letsencrypt_dest_path" {
+  type = string
+  default = ""
+}
+
 # source blocks are generated from your builders; a source can be referenced in
 # build blocks. A build block runs provisioners and post-processors on a
 # source.
@@ -76,10 +86,14 @@ build {
       source = var.ssh_public_key_src_path
       destination = var.ssh_public_key_dest_path
     }
-
     provisioner "file" {
       source = var.postgres_password_src_path
       destination = var.postgres_password_dest_path
+    }
+
+    provisioner "file" {
+      source = var.letsencrypt_src_path
+      destination = var.letsencrypt_dest_path
     }
 
     provisioner "shell" {
@@ -107,13 +121,16 @@ build {
       scripts = ["./scripts/install-nginx.sh"]
       env = {
         FS_MOUNT_PATH: var.fs_mount_path
-        USER: "han",
+        USER: "han"
         DOMAIN: "api.urlshortener.yaphc.com"
-        URL_REDIRECT_DOMAIN: "go.yaphc.com",
+        URL_REDIRECT_DOMAIN: "go.yaphc.com"
         ADMIN_EMAIL: var.admin_email
-        MAXMIND_ACCOUNT_ID: var.maxmind_account_id,
-        MAXMIND_LICENSE_KEY: var.maxmind_license_key,
-        ADMIN_EMAIL: var.admin_email
+        MAXMIND_ACCOUNT_ID: var.maxmind_account_id
+        MAXMIND_LICENSE_KEY: var.maxmind_license_key
+        URL_SHORTENER_SSL_CERT_PATH: var.url_shortener_ssl_cert_dest_path
+        URL_SHORTENER_SSL_KEY_PATH: var.url_shortener_ssl_key_dest_path
+        URL_REDIRECT_SSL_CERT_PATH: var.url_redirect_ssl_cert_dest_path
+        URL_REDIRECT_SSL_KEY_PATH: var.url_redirect_ssl_key_dest_path
       }
     }
 

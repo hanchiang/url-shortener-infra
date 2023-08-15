@@ -16,7 +16,7 @@ sudo tee -a /etc/redis/redis.conf <<< "include /etc/redis/conf.d/redis.conf" > /
 sudo tee -a /etc/redis/conf.d/redis.conf > /dev/null << EOF
 supervised systemd
 
-maxmemory 10mb
+maxmemory 50mb
 maxmemory-policy allkeys-lfu
 EOF
 
