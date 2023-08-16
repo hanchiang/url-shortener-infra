@@ -6,7 +6,7 @@ NGINX_BRANCH="stable" # use nginx=development for latest development version
 
 sudo add-apt-repository -y ppa:nginx/$NGINX_BRANCH
 sudo apt update
-sudo apt -y install nginx=1.18.0-6ubuntu14
+sudo apt -y install nginx
 
 sudo ufw --force enable
 sudo ufw allow 80
@@ -18,6 +18,10 @@ sudo systemctl start nginx
 
 localhost=$(ip addr show eth0 | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
 curl $localhost
+
+# copy letsencrypt folder
+sudo unzip $LETSENCRYPT_PATH -d /
+sudo rm -rf $LETSENCRYPT_PATH
 
 # Setup nginx server block
 sudo mkdir -p /var/www/$DOMAIN/html

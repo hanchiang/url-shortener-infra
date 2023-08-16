@@ -2,7 +2,7 @@ name: Start URL shortener
 on:
   schedule:
     - cron: '50 10 * * 1-5' # weekdays
-    - cron: '50 2 * * 0,6' # weekends, 0 = sunday
+    - cron: '50 5 * * 0,6' # weekends, 0 = sunday
   workflow_dispatch:
     inputs:
       logLevel:

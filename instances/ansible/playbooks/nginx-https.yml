@@ -48,9 +48,11 @@
 
           certbot --nginx -d {{ item }} --non-interactive --agree-tos -m {{ ADMIN_EMAIL }}
 
-          sudo systemctl force-reload nginx
           sleep 10
         fi
+
+        sudo systemctl force-reload nginx
+        sudo certbot renew --dry-run
 
         # cron
         crontab -l > mycron
