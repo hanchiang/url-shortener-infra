@@ -66,4 +66,6 @@ adhoc_scripts/
 observability/grafana
 
 instances/letsencrypt*
-myreadme.txt
+my_readme.txt
+build.log
+route53.bak
